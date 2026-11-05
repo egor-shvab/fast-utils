@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import Core
 import OSLog
 import SwiftUI
@@ -18,7 +19,11 @@ public final class ClipboardFeature: Feature {
 
     public var actions: [FeatureAction] {
         [
-            FeatureAction(id: "clipboard.showHistory", title: String(localized: "clipboard.action.showHistory")) { [weak self] _ in
+            FeatureAction(
+                id: "clipboard.showHistory",
+                title: String(localized: "clipboard.action.showHistory"),
+                defaultShortcut: Shortcut(kVK_ANSI_V, [.option, .command])
+            ) { [weak self] _ in
                 guard let self else { return .none }
                 log.notice("Stub action clipboard.showHistory")
                 StubAlert.show(feature: title)

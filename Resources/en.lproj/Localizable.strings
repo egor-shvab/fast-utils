@@ -23,7 +23,6 @@
 "settings.tab.about" = "About";
 "settings.general.features" = "Features";
 "settings.general.featuresFooter" = "A turned-off feature does not run, ignores its shortcuts and uses no resources.";
-"settings.placeholder.shortcuts" = "Shortcut settings arrive in stage 2.";
 "settings.placeholder.permissions" = "Permission management arrives in stage 3.";
 "settings.about.version" = "Version %@";
 "settings.about.openData" = "Open Data Folder";
@@ -40,3 +39,39 @@
 "stub.title" = "Coming Soon";
 "stub.message" = "“%@” is still in development.";
 "stub.settings" = "Settings for this feature arrive in later stages.";
+
+/* Shortcuts */
+"shortcut.recorder.press" = "Press shortcut…";
+"shortcut.recorder.none" = "None";
+"shortcut.recorder.help" = "Click and type a shortcut. Esc cancels, ⌫ removes.";
+"shortcut.recorder.clear" = "Remove shortcut";
+"shortcut.recorder.reset" = "Restore default";
+"shortcut.recorder.refused" = "%@ can’t be used: %@";
+"shortcut.settings.resetAll" = "Restore All Default Shortcuts";
+"shortcut.settings.footer" = "Shortcuts work in every app and any keyboard layout. Only enabled features are listed.";
+"shortcut.check.duplicate" = "already assigned to “%@”";
+"shortcut.check.reserved" = "it is a standard macOS shortcut (%@)";
+"shortcut.check.system" = "Same as a macOS system shortcut (System Settings → Keyboard → Keyboard Shortcuts). One of them may not work.";
+"shortcut.check.known" = "Also used for: %@. FastUtils will take it in those apps.";
+"shortcut.reserved.copy" = "Copy";
+"shortcut.reserved.paste" = "Paste";
+"shortcut.reserved.cut" = "Cut";
+"shortcut.reserved.undo" = "Undo";
+"shortcut.reserved.redo" = "Redo";
+"shortcut.reserved.selectAll" = "Select All";
+"shortcut.reserved.quit" = "Quit";
+"shortcut.reserved.close" = "Close Window";
+"shortcut.reserved.switchApps" = "app switching";
+"shortcut.known.reopenTab" = "browsers — reopen closed tab";
+"shortcut.known.pastePlain" = "many apps — paste without formatting";
+"shortcut.known.finderMove" = "Finder — move copied item";
+"shortcut.known.finderToolbar" = "Finder — hide toolbar";
+"shortcut.known.newTab" = "many apps — new tab";
+"shortcut.known.newWindow" = "many apps — new window";
+"shortcut.known.save" = "many apps — save";
+"shortcut.known.find" = "many apps — find";
+"shortcut.known.print" = "many apps — print";
+"shortcut.known.open" = "many apps — open";
+"shortcut.known.hide" = "hide app";
+"shortcut.known.minimize" = "minimize window";
+"shortcut.known.preferences" = "app settings";

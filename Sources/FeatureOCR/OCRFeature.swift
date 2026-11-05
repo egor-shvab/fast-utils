@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import Core
 import OSLog
 import SwiftUI
@@ -18,7 +19,11 @@ public final class OCRFeature: Feature {
 
     public var actions: [FeatureAction] {
         [
-            FeatureAction(id: "ocr.captureText", title: String(localized: "ocr.action.captureText")) { [weak self] _ in
+            FeatureAction(
+                id: "ocr.captureText",
+                title: String(localized: "ocr.action.captureText"),
+                defaultShortcut: Shortcut(kVK_ANSI_2, [.shift, .command])
+            ) { [weak self] _ in
                 guard let self else { return .none }
                 log.notice("Stub action ocr.captureText")
                 StubAlert.show(feature: title)

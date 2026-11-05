@@ -23,7 +23,6 @@
 "settings.tab.about" = "О программе";
 "settings.general.features" = "Функции";
 "settings.general.featuresFooter" = "Выключенная функция не работает, не реагирует на сочетания клавиш и не потребляет ресурсы.";
-"settings.placeholder.shortcuts" = "Настройка сочетаний клавиш появится на этапе 2.";
 "settings.placeholder.permissions" = "Управление разрешениями появится на этапе 3.";
 "settings.about.version" = "Версия %@";
 "settings.about.openData" = "Открыть папку с данными";
@@ -40,3 +39,39 @@
 "stub.title" = "Скоро будет";
 "stub.message" = "Функция «%@» ещё в разработке.";
 "stub.settings" = "Настройки этой функции появятся на следующих этапах.";
+
+/* Shortcuts */
+"shortcut.recorder.press" = "Нажмите сочетание…";
+"shortcut.recorder.none" = "Не задано";
+"shortcut.recorder.help" = "Нажмите и введите сочетание. Esc — отмена, ⌫ — удалить.";
+"shortcut.recorder.clear" = "Удалить сочетание";
+"shortcut.recorder.reset" = "Вернуть по умолчанию";
+"shortcut.recorder.refused" = "%@ нельзя назначить: %@";
+"shortcut.settings.resetAll" = "Вернуть все сочетания по умолчанию";
+"shortcut.settings.footer" = "Сочетания работают во всех приложениях и в любой раскладке. Здесь показаны только включённые функции.";
+"shortcut.check.duplicate" = "уже назначено действию «%@»";
+"shortcut.check.reserved" = "это стандартное сочетание macOS (%@)";
+"shortcut.check.system" = "Совпадает с системным сочетанием macOS (Системные настройки → Клавиатура → Сочетания клавиш). Одно из них может не сработать.";
+"shortcut.check.known" = "Также используется: %@. В этих приложениях сработает FastUtils.";
+"shortcut.reserved.copy" = "«Скопировать»";
+"shortcut.reserved.paste" = "«Вставить»";
+"shortcut.reserved.cut" = "«Вырезать»";
+"shortcut.reserved.undo" = "«Отменить»";
+"shortcut.reserved.redo" = "«Повторить»";
+"shortcut.reserved.selectAll" = "«Выбрать все»";
+"shortcut.reserved.quit" = "«Завершить приложение»";
+"shortcut.reserved.close" = "«Закрыть окно»";
+"shortcut.reserved.switchApps" = "переключение приложений";
+"shortcut.known.reopenTab" = "в браузерах — открыть закрытую вкладку";
+"shortcut.known.pastePlain" = "во многих приложениях — вставить без форматирования";
+"shortcut.known.finderMove" = "в Finder — переместить скопированный объект";
+"shortcut.known.finderToolbar" = "в Finder — скрыть панель инструментов";
+"shortcut.known.newTab" = "во многих приложениях — новая вкладка";
+"shortcut.known.newWindow" = "во многих приложениях — новое окно";
+"shortcut.known.save" = "во многих приложениях — сохранить";
+"shortcut.known.find" = "во многих приложениях — поиск";
+"shortcut.known.print" = "во многих приложениях — печать";
+"shortcut.known.open" = "во многих приложениях — открыть";
+"shortcut.known.hide" = "скрыть приложение";
+"shortcut.known.minimize" = "свернуть окно";
+"shortcut.known.preferences" = "настройки приложения";

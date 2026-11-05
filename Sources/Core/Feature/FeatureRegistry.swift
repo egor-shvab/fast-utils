@@ -21,6 +21,9 @@ public final class FeatureRegistry {
         self.context = context
         self.state = context.settings.scoped("features")
         self.features = types.map { $0.init(context: context) }
+        for feature in features {
+            context.hotkeys.declare(feature.actions)
+        }
     }
 
     public static func id(of feature: any Feature) -> FeatureID { type(of: feature).id }
@@ -65,6 +68,7 @@ public final class FeatureRegistry {
         guard !enabledIDs.contains(id) else { return }
         enabledIDs.insert(id)
         context.actions.register(feature.actions, for: id)
+        context.hotkeys.activate(feature.actions.map(\.id))
         await feature.start()
         context.logger("features").notice("Enabled \(id.rawValue, privacy: .public)")
         context.events.publish(FeatureStateChanged(feature: id, isEnabled: true))
@@ -74,6 +78,7 @@ public final class FeatureRegistry {
         let id = Self.id(of: feature)
         guard enabledIDs.contains(id) else { return }
         enabledIDs.remove(id)
+        context.hotkeys.deactivate(feature.actions.map(\.id))
         context.actions.unregisterAll(for: id)
         await feature.stop()
         context.logger("features").notice("Disabled \(id.rawValue, privacy: .public)")

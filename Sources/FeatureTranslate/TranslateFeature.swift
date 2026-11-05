@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import Core
 import OSLog
 import SwiftUI
@@ -18,7 +19,11 @@ public final class TranslateFeature: Feature {
 
     public var actions: [FeatureAction] {
         [
-            FeatureAction(id: "translate.clipboard", title: String(localized: "translate.action.clipboard")) { [weak self] _ in
+            FeatureAction(
+                id: "translate.clipboard",
+                title: String(localized: "translate.action.clipboard"),
+                defaultShortcut: Shortcut(kVK_ANSI_T, [.option, .command])
+            ) { [weak self] _ in
                 guard let self else { return .none }
                 log.notice("Stub action translate.clipboard")
                 StubAlert.show(feature: title)

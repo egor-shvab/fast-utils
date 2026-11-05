@@ -20,15 +20,19 @@ public enum ActionOutput {
 public struct FeatureAction {
     public let id: ActionID
     public let title: String
+    /// Global shortcut assigned on first launch; the user can change or clear it later.
+    public let defaultShortcut: Shortcut?
     public let perform: @MainActor (ActionInput) async throws -> ActionOutput
 
     public init(
         id: ActionID,
         title: String,
+        defaultShortcut: Shortcut? = nil,
         perform: @escaping @MainActor (ActionInput) async throws -> ActionOutput
     ) {
         self.id = id
         self.title = title
+        self.defaultShortcut = defaultShortcut
         self.perform = perform
     }
 }

@@ -12,7 +12,7 @@ struct SettingsView: View {
                 .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
 
-            PlaceholderPane(text: String(localized: "settings.placeholder.shortcuts"))
+            ShortcutsSettingsView(registry: registry, hotkeys: context.hotkeys)
                 .tabItem { Label(String(localized: "settings.tab.shortcuts"), systemImage: "keyboard") }
                 .tag(SettingsTab.shortcuts)
 

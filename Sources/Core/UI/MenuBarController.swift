@@ -35,6 +35,11 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
                 let item = NSMenuItem(title: descriptor.title, action: #selector(runAction(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = descriptor.actionID.rawValue
+                if let shortcut = context.hotkeys.shortcut(for: descriptor.actionID),
+                   let key = shortcut.menuKeyEquivalent {
+                    item.keyEquivalent = key
+                    item.keyEquivalentModifierMask = shortcut.modifiers.eventFlags
+                }
                 menu.addItem(item)
                 hasFeatureItems = true
             }

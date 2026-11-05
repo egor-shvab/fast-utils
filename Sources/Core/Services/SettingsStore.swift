@@ -31,6 +31,11 @@ public struct ScopedSettings {
         defaults.object(forKey: key(name)) as? T ?? defaultValue
     }
 
+    /// The stored value as is, for values whose type is known only after reading.
+    public func rawValue(_ name: String) -> Any? {
+        defaults.object(forKey: key(name))
+    }
+
     public func set(_ value: Any?, for name: String) {
         defaults.set(value, forKey: key(name))
     }
