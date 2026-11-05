@@ -1,2 +1,42 @@
 /* Status bar menu */
 "menu.quit" = "Выйти из FastUtils";
+"menu.settings" = "Настройки…";
+"menu.about" = "О программе";
+"menu.noFeatures" = "Все функции выключены";
+
+/* Hidden main menu (key equivalents in text fields) */
+"menu.edit" = "Правка";
+"menu.edit.undo" = "Отменить";
+"menu.edit.redo" = "Повторить";
+"menu.edit.cut" = "Вырезать";
+"menu.edit.copy" = "Скопировать";
+"menu.edit.paste" = "Вставить";
+"menu.edit.selectAll" = "Выбрать все";
+"menu.window" = "Окно";
+"menu.window.close" = "Закрыть";
+
+/* Settings */
+"settings.window.title" = "Настройки FastUtils";
+"settings.tab.general" = "Основные";
+"settings.tab.shortcuts" = "Сочетания клавиш";
+"settings.tab.permissions" = "Разрешения";
+"settings.tab.about" = "О программе";
+"settings.general.features" = "Функции";
+"settings.general.featuresFooter" = "Выключенная функция не работает, не реагирует на сочетания клавиш и не потребляет ресурсы.";
+"settings.placeholder.shortcuts" = "Настройка сочетаний клавиш появится на этапе 2.";
+"settings.placeholder.permissions" = "Управление разрешениями появится на этапе 3.";
+"settings.about.version" = "Версия %@";
+"settings.about.openData" = "Открыть папку с данными";
+
+/* Features */
+"feature.ocr.title" = "Распознавание текста";
+"ocr.action.captureText" = "Распознать текст";
+"feature.translate.title" = "Перевод";
+"translate.action.clipboard" = "Перевести буфер обмена";
+"feature.clipboard.title" = "История буфера обмена";
+"clipboard.action.showHistory" = "История буфера обмена";
+
+/* Stubs (temporary) */
+"stub.title" = "Скоро будет";
+"stub.message" = "Функция «%@» ещё в разработке.";
+"stub.settings" = "Настройки этой функции появятся на следующих этапах.";

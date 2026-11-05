@@ -1,33 +1,28 @@
 import AppKit
 import Core
-import OSLog
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let log = Logger(subsystem: AppInfo.bundleIdentifier, category: "app")
-    private var statusItem: NSStatusItem?
+    private let context = AppContext()
+    private lazy var registry = FeatureRegistry(context: context, types: featureTypes)
+    private lazy var settingsWindow = SettingsWindowController(registry: registry, context: context)
+    private var menuBar: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusItem = makeStatusItem()
-        log.notice("Started, version \(AppInfo.version, privacy: .public)")
+        MainMenu.install()
+        menuBar = MenuBarController(registry: registry, context: context) { [weak self] tab in
+            self?.settingsWindow.show(tab: tab)
+        }
+        Task {
+            await registry.startEnabledFeatures()
+            context.logger("app").notice("Started, version \(AppInfo.version, privacy: .public)")
+        }
     }
 
-    private func makeStatusItem() -> NSStatusItem {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        if let button = item.button {
-            let image = NSImage(systemSymbolName: "text.viewfinder", accessibilityDescription: AppInfo.name)
-            image?.isTemplate = true
-            button.image = image
-        }
-
-        let menu = NSMenu()
-        let quit = NSMenuItem(
-            title: String(localized: "menu.quit"),
-            action: #selector(NSApplication.terminate(_:)),
-            keyEquivalent: "q"
-        )
-        menu.addItem(quit)
-        item.menu = menu
-        return item
+    /// Re-opening the app (Finder, Spotlight) while it runs shows Settings —
+    /// the way back if the menu bar icon is hidden (TZ.md §4).
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        settingsWindow.show()
+        return false
     }
 }

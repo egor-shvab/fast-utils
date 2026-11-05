@@ -1,2 +1,42 @@
 /* Status bar menu */
 "menu.quit" = "Quit FastUtils";
+"menu.settings" = "Settings…";
+"menu.about" = "About";
+"menu.noFeatures" = "All features are turned off";
+
+/* Hidden main menu (key equivalents in text fields) */
+"menu.edit" = "Edit";
+"menu.edit.undo" = "Undo";
+"menu.edit.redo" = "Redo";
+"menu.edit.cut" = "Cut";
+"menu.edit.copy" = "Copy";
+"menu.edit.paste" = "Paste";
+"menu.edit.selectAll" = "Select All";
+"menu.window" = "Window";
+"menu.window.close" = "Close";
+
+/* Settings */
+"settings.window.title" = "FastUtils Settings";
+"settings.tab.general" = "General";
+"settings.tab.shortcuts" = "Shortcuts";
+"settings.tab.permissions" = "Permissions";
+"settings.tab.about" = "About";
+"settings.general.features" = "Features";
+"settings.general.featuresFooter" = "A turned-off feature does not run, ignores its shortcuts and uses no resources.";
+"settings.placeholder.shortcuts" = "Shortcut settings arrive in stage 2.";
+"settings.placeholder.permissions" = "Permission management arrives in stage 3.";
+"settings.about.version" = "Version %@";
+"settings.about.openData" = "Open Data Folder";
+
+/* Features */
+"feature.ocr.title" = "Text Recognition";
+"ocr.action.captureText" = "Recognize Text";
+"feature.translate.title" = "Translation";
+"translate.action.clipboard" = "Translate Clipboard";
+"feature.clipboard.title" = "Clipboard History";
+"clipboard.action.showHistory" = "Clipboard History";
+
+/* Stubs (temporary) */
+"stub.title" = "Coming Soon";
+"stub.message" = "“%@” is still in development.";
+"stub.settings" = "Settings for this feature arrive in later stages.";

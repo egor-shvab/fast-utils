@@ -38,7 +38,7 @@ FastUtils — фоновое приложение для macOS, которое �
 
 ```bash
 swift build                          # быстрая проверка компиляции
-swift test                           # юнит-тесты (Swift Testing)
+perl -e 'alarm 300; exec @ARGV' swift test   # юнит-тесты (Swift Testing) с защитой от зависания
 scripts/build.sh                     # release-сборка в build/FastUtils.app
 scripts/build.sh --debug             # debug-сборка с get-task-allow (можно подключить lldb)
 scripts/build.sh --run               # собрать, перезапустить из build/ и стримить логи приложения
@@ -53,6 +53,9 @@ swift scripts/make-icon.swift        # перегенерировать Resource
 ## Архитектура (кратко, подробно — TZ.md §12)
 
 - **Ядро (`Sources/Core`) + модули-функции (`Sources/Feature*`).** Модуль реализует протокол `Feature`, регистрируется одной строкой в `Sources/FastUtilsApp/FeatureList.swift`.
+- Устройство ядра (этап 1): `Core/Feature/` — `Feature`, `FeatureAction` (структура: id + название + `@MainActor`-замыкание, а не протокол, как в эскизе TZ.md §12.2), `FeatureRegistry` (включение/выключение, хранит флаг в `features.<id>.enabled`); `Core/Services/` — `SettingsStore`, `SecretStore` (Keychain / in-memory), `StorageService`, `EventBus`, `ActionRegistry`; `Core/UI/` — `MenuBarController`, `SettingsWindowController` + `SettingsView`, скрытое главное меню `MainMenu`, временный `StubAlert`.
+- Всё ядро — `@MainActor`. Действия выключенного модуля в `ActionRegistry` отсутствуют, вызов даёт `ActionError.notFound`.
+- В тестах используй `AppContext.testing()` — отдельный UserDefaults-suite, секреты в памяти, временный каталог.
 - **Модули зависят только от `Core`, но не друг от друга.** Связки (например, «распознать и перевести») делаются через `ActionRegistry` по `ActionID`. Межмодульный импорт запрещён и должен ломать сборку на уровне `Package.swift`.
 - **Сервисы — через `AppContext`** (внедрение зависимостей). Синглтоны и глобальное состояние не используем, `shared`-объекты не заводим.
 - **С `NSPasteboard` напрямую не работаем**, только через `PasteboardService` из Core. Иначе история начнёт путать «технические» записи приложения (перевод выделенного, вставка из истории) с копированием пользователя.
@@ -86,4 +89,9 @@ swift scripts/make-icon.swift        # перегенерировать Resource
 - **2026-11-05, этап 0 — `open` на запущенном приложении** только активирует уже запущенную копию и не перезапускает её. Перед запуском новой сборки делай `pkill -x FastUtils` (`build.sh --run/--install` делают это сами).
 - **2026-11-05, этап 0 — визуальная проверка.** Агент не может сделать снимок экрана из своего шелла (`screencapture` → «could not create image from display»: у процесса агента нет разрешения на запись экрана). Чтобы проверить UI, попроси пользователя посмотреть или используй computer-use, если он доступен. Факт запуска проверяется по `pgrep -x FastUtils` и логам; признак агента без Dock — `type="UIElement"` в `lsappinfo list`.
 - **2026-11-05, этап 0 — сертификат подписи.** `FastUtils Dev` создан, SHA-1 `38739094F765AA7730F3D1C43A0DF7AFC3433A1F`. `security find-identity` показывает его с `CSSMERR_TP_NOT_TRUSTED` — это нормально, подпись работает без запросов пароля. Поэтому ищем его **без** флага `-v` (с `-v` видны только доверенные). Требование подписи: `identifier "com.yahor.FastUtils" and certificate leaf = H"38739094…"` — одинаковое у всех сборок, проверка: `codesign -dr - build/FastUtils.app`. Если сертификат пересоздать, хэш изменится и все разрешения придётся выдавать заново.
+- **2026-11-05, этап 1 — падение компилятора.** Key path к статическому свойству через экзистенциальный метатип (`types.map(\.id)`, где `types: [any Feature.Type]`) роняет Swift 6.4 в SILGen («Stack dump… While silgen constructor»). Пиши замыкание: `types.map { $0.id }`. Если компилятор падает без понятной ошибки — ищи такие конструкции.
+- **2026-11-05, этап 1 — плагин макросов Swift Testing.** Новая система сборки SwiftPM (Swift Build, по умолчанию в 6.4) с одними CLT **случайным образом** не передаёт тестовым целям путь к `TestingMacros` → «plugin for module 'TestingMacros' not found». `--build-system native` не помогает (не находит модуль `Testing`). Решение в `Package.swift`: `testSettings` с `-plugin-path …/host/plugins/testing` для каждой `testTarget`. **Новые тестовые цели создавай с `swiftSettings: testSettings`.**
+- **2026-11-05, этап 1 — зависание тестов.** Тест, который ждёт событие из `AsyncStream`, висит вечно, если событие не пришло (например, выключение модуля, который не был запущен, ничего не публикует). Всегда запускай тесты через `perl -e 'alarm 300; exec @ARGV' swift test` (в macOS нет `timeout`).
+- **2026-11-05, этап 1 — строгая конкурентность в тестах.** Замыкание в `#expect(throws:)` не должно возвращать не-`Sendable` значение (`ActionOutput`): пиши `_ = try await …`.
+- **2026-11-05, этап 1 — проверка окон без скриншотов.** Скрипт на `CGWindowListCopyWindowInfo` с фильтром по `kCGWindowOwnerName == "FastUtils"` показывает слой и размеры окон приложения — разрешения на запись экрана для этого не нужно. Так можно убедиться, что окно открылось. Повторный `open build/FastUtils.app` при запущенном приложении открывает настройки (`applicationShouldHandleReopen`).
 - **2026-11-05, этап 0 — ресурсы SwiftPM-зависимостей.** `build.sh` копирует `*.bundle` из каталога сборки в `Contents/Resources`. Сгенерированный SwiftPM аксессор `Bundle.module` может искать бандл в корне `.app` (а туда класть файлы нельзя — сломается подпись). Проверить на этапе 2, когда появится `KeyboardShortcuts` с ресурсами.
