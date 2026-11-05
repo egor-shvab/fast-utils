@@ -14,6 +14,10 @@ struct TranslationResult: Sendable, Equatable {
     var text: String
     var source: String?
     var target: String
+    /// Which engine actually translated (set by `ResilientEngine`).
+    var engineName: String?
+    /// Why the chosen online engine was not used, when Apple stepped in.
+    var fallbackReason: String?
 }
 
 /// A translation backend. Apple Translation now; DeepL and Google in stage 8 (TZ.md §12.4).

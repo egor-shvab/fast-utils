@@ -12,6 +12,9 @@ public final class TranslateFeature: Feature {
     private let context: AppContext
     private let log: Logger
     let settings: TranslateSettings
+    let cache = TranslationCache()
+    /// Network access; replaced in tests.
+    var http: any HTTPClient = URLSessionHTTPClient()
 
     public init(context: AppContext) {
         self.context = context
@@ -43,7 +46,7 @@ public final class TranslateFeature: Feature {
     }
 
     public var settingsView: AnyView? {
-        AnyView(TranslateSettingsView(settings: settings))
+        AnyView(TranslateSettingsView(settings: settings, keys: APIKeysModel(secrets: context.secrets, http: http)))
     }
 
     // MARK: Actions
@@ -67,7 +70,7 @@ public final class TranslateFeature: Feature {
         let text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, confirmLength(text.count) else { return }
 
-        let engine = AppleTranslationEngine()
+        let engine = makeEngine()
         let model = TranslationViewModel(text: text, engine: engine, settings: settings)
         // Length and languages only — never the text.
         log.notice("Translate \(text.count) chars, \(model.source ?? "auto", privacy: .public) → \(model.target, privacy: .public)")
@@ -83,6 +86,26 @@ public final class TranslateFeature: Feature {
                 handle.close()
             }
         }
+    }
+
+    /// The engine chosen in settings, wrapped with the cache and the Apple fallback.
+    func makeEngine() -> ResilientEngine {
+        let apple = AppleTranslationEngine()
+        var primary: (any TranslationEngine)?
+        var primaryError: OnlineTranslationError?
+        if settings.engine != .apple {
+            let key = context.secrets.secret(for: TranslateSettings.secretKey(for: settings.engine))?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if key.isEmpty {
+                primaryError = .missingKey
+            } else {
+                primary = settings.engine == .deepl ? DeepLEngine(key: key, http: http) : GoogleEngine(key: key, http: http)
+            }
+        }
+        return ResilientEngine(
+            primary: primary, primaryError: primaryError, apple: apple,
+            fallbackToApple: settings.fallbackToApple, cache: cache, cacheKey: settings.engine.rawValue
+        )
     }
 
     private func confirmLength(_ length: Int) -> Bool {

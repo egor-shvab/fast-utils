@@ -85,7 +85,12 @@ struct TranslationView: View {
 
     private var footer: some View {
         HStack {
-            Text(model.engine.name).font(.caption).foregroundStyle(.tertiary)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(model.usedEngineName).font(.caption).foregroundStyle(.tertiary)
+                if let reason = model.fallbackReason {
+                    Text(reason).font(.caption2).foregroundStyle(.orange).lineLimit(2)
+                }
+            }
             Spacer()
             Button(String(localized: "translate.window.copy")) {
                 if let translation = model.translation { onCopy(translation) }

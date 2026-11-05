@@ -230,4 +230,24 @@
 "translate.settings.autoCopy" = "Автоматически копировать перевод в буфер";
 "translate.settings.engine" = "Движок перевода";
 "translate.settings.manageLanguages" = "Языковые пакеты в Системных настройках…";
-"translate.settings.engineFooter" = "Перевод выполняется на устройстве и работает без интернета. Языковые пакеты система загружает один раз. DeepL и Google появятся на этапе 8.";
+"translate.settings.engineFooter" = "Перевод выполняется на устройстве и работает без интернета. Языковые пакеты система загружает один раз.";
+
+/* Online translation */
+"translate.online.missingKey" = "Не задан API-ключ — укажите его в Настройках → Перевод";
+"translate.online.invalidKey" = "Неверный API-ключ";
+"translate.online.quota" = "Исчерпан лимит символов";
+"translate.online.rateLimited" = "Слишком много запросов, попробуйте чуть позже";
+"translate.online.offline" = "Нет подключения к интернету";
+"translate.online.timeout" = "Сервис не ответил за 10 секунд";
+"translate.online.server" = "Ошибка сервиса (код %d)";
+"translate.online.badResponse" = "Неожиданный ответ сервиса";
+"translate.settings.engineSection" = "Движок перевода";
+"translate.settings.fallback.toggle" = "При ошибке переводить через Apple";
+"translate.settings.onlineFooter" = "Текст отправляется на сервер выбранного сервиса. Ключ хранится в Связке ключей. Если сервис недоступен (нет интернета, неверный ключ, лимит), перевод сделает Apple — об этом будет пометка в окне.";
+"translate.key.deepl" = "Ключ DeepL";
+"translate.key.google" = "Ключ Google Cloud";
+"translate.key.placeholder" = "Вставьте API-ключ";
+"translate.key.check" = "Проверить";
+"translate.key.ok" = "✓ Ключ работает";
+"translate.key.okDeepL" = "✓ Ключ работает. Использовано %@ из %@ символов в этом месяце";
+"translate.key.saveFailed" = "⚠️ Не удалось сохранить ключ в Связку ключей";

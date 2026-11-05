@@ -230,4 +230,24 @@
 "translate.settings.autoCopy" = "Copy the translation to the clipboard automatically";
 "translate.settings.engine" = "Translation engine";
 "translate.settings.manageLanguages" = "Language Downloads in System Settings…";
-"translate.settings.engineFooter" = "Translation runs on device and works offline. The system downloads language data once. DeepL and Google arrive in stage 8.";
+"translate.settings.engineFooter" = "Translation runs on device and works offline. The system downloads language data once.";
+
+/* Online translation */
+"translate.online.missingKey" = "No API key — add it in Settings → Translation";
+"translate.online.invalidKey" = "Invalid API key";
+"translate.online.quota" = "Character quota exceeded";
+"translate.online.rateLimited" = "Too many requests, try again shortly";
+"translate.online.offline" = "No internet connection";
+"translate.online.timeout" = "The service didn’t answer within 10 seconds";
+"translate.online.server" = "Service error (code %d)";
+"translate.online.badResponse" = "Unexpected response from the service";
+"translate.settings.engineSection" = "Translation Engine";
+"translate.settings.fallback.toggle" = "Use Apple when it fails";
+"translate.settings.onlineFooter" = "The text is sent to the chosen service. The key is stored in the Keychain. If the service is unavailable (offline, bad key, quota), Apple translates instead — the window says so.";
+"translate.key.deepl" = "DeepL key";
+"translate.key.google" = "Google Cloud key";
+"translate.key.placeholder" = "Paste the API key";
+"translate.key.check" = "Check";
+"translate.key.ok" = "✓ The key works";
+"translate.key.okDeepL" = "✓ The key works. %@ of %@ characters used this month";
+"translate.key.saveFailed" = "⚠️ Couldn’t save the key to the Keychain";

@@ -16,6 +16,10 @@ final class TranslationViewModel: ObservableObject {
     @Published private(set) var canDownload = false
     @Published var showsOriginal = false
     @Published private(set) var targets: [String] = []
+    /// The engine that produced the shown translation.
+    @Published private(set) var usedEngineName: String
+    /// "Translated by Apple: DeepL is unavailable (…)".
+    @Published private(set) var fallbackReason: String?
 
     let engine: any TranslationEngine
     private let settings: TranslateSettings
@@ -25,6 +29,7 @@ final class TranslationViewModel: ObservableObject {
     init(text: String, engine: any TranslationEngine, settings: TranslateSettings) {
         original = text
         self.engine = engine
+        usedEngineName = engine.name
         self.settings = settings
         let detected = LanguageDetector.detect(text)
         source = detected
@@ -96,6 +101,8 @@ final class TranslationViewModel: ObservableObject {
             guard !Task.isCancelled else { return }
             translation = result.text
             if let detected = result.source { source = detected }
+            usedEngineName = result.engineName ?? engine.name
+            fallbackReason = result.fallbackReason
             onTranslated?(result.text)
         } catch is CancellationError {
             return
@@ -109,6 +116,10 @@ final class TranslationViewModel: ObservableObject {
         if #available(macOS 26, *), TranslationError.notInstalled ~= error {
             self.error = String(localized: "translate.error.notInstalled")
             canDownload = true
+            return
+        }
+        if let online = error as? OnlineTranslationError {
+            self.error = online.message
             return
         }
         switch error {
