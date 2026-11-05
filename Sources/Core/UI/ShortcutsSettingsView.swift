@@ -9,7 +9,7 @@ struct ShortcutsSettingsView: View {
             ForEach(enabledFeatureIDs, id: \.self) { featureID in
                 let feature = registry.feature(featureID)!
                 Section {
-                    ForEach(feature.actions.map(\.id), id: \.self) { actionID in
+                    ForEach(feature.actions.filter { !$0.isInternal }.map(\.id), id: \.self) { actionID in
                         LabeledContent(hotkeys.title(for: actionID) ?? actionID.rawValue) {
                             ShortcutRecorder(id: actionID, hotkeys: hotkeys)
                         }

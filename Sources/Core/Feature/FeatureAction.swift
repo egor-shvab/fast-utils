@@ -22,17 +22,21 @@ public struct FeatureAction {
     public let title: String
     /// Global shortcut assigned on first launch; the user can change or clear it later.
     public let defaultShortcut: Shortcut?
+    /// Only for other features (chains): not shown in the menu, shortcuts or onboarding.
+    public let isInternal: Bool
     public let perform: @MainActor (ActionInput) async throws -> ActionOutput
 
     public init(
         id: ActionID,
         title: String,
         defaultShortcut: Shortcut? = nil,
+        isInternal: Bool = false,
         perform: @escaping @MainActor (ActionInput) async throws -> ActionOutput
     ) {
         self.id = id
         self.title = title
         self.defaultShortcut = defaultShortcut
+        self.isInternal = isInternal
         self.perform = perform
     }
 }

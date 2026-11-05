@@ -9,6 +9,15 @@ final class FloatingPanel: NSPanel {
     var isPinned = false
     var onClose: (() -> Void)?
 
+    /// Temporarily ignore focus loss — e.g. while a system prompt (Apple Translation's
+    /// language download) is shown over the panel. When released, the panel takes focus
+    /// back, so clicking elsewhere closes it again.
+    var holdsOpen = false {
+        didSet {
+            if oldValue && !holdsOpen && isVisible && !isKeyWindow { makeKeyAndOrderFront(nil) }
+        }
+    }
+
     init(size: CGSize) {
         super.init(
             contentRect: CGRect(origin: .zero, size: size),
@@ -38,7 +47,13 @@ final class FloatingPanel: NSPanel {
 
     override func resignKey() {
         super.resignKey()
-        if !isPinned { close() }
+        guard !isPinned, !holdsOpen else { return }
+        // Decide on the next turn: by then a sheet or child window that took focus is known.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, isVisible, !isKeyWindow, !isPinned, !holdsOpen, attachedSheet == nil else { return }
+            if let key = NSApp.keyWindow, key.sheetParent === self || key.parent === self { return }
+            close()
+        }
     }
 
     override func close() {
@@ -53,6 +68,8 @@ final class FloatingPanel: NSPanel {
 @Observable
 public final class PanelHandle {
     public var isPinned = false { didSet { panel?.isPinned = isPinned } }
+    /// See `FloatingPanel.holdsOpen`.
+    public var holdsOpen = false { didSet { panel?.holdsOpen = holdsOpen } }
     @ObservationIgnored weak var panel: FloatingPanel?
 
     public func close() { panel?.close() }

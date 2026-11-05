@@ -30,7 +30,7 @@ public protocol Feature: AnyObject {
 public extension Feature {
     var requiredPermissions: Set<Permission> { [] }
     var menuItems: [MenuItemDescriptor] {
-        actions.map { MenuItemDescriptor(actionID: $0.id, title: $0.title) }
+        actions.filter { !$0.isInternal }.map { MenuItemDescriptor(actionID: $0.id, title: $0.title) }
     }
     var settingsView: AnyView? { nil }
     func start() async {}

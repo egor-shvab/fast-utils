@@ -34,8 +34,6 @@
 "feature.clipboard.title" = "Clipboard History";
 "clipboard.action.showHistory" = "Clipboard History";
 
-/* Stubs (temporary) */
-"stub.settings" = "Settings for this feature arrive in later stages.";
 
 /* Shortcuts */
 "shortcut.recorder.press" = "Press shortcut…";
@@ -109,10 +107,6 @@
 "panel.pin" = "Pin: keep open when clicking elsewhere";
 "panel.hint" = "Esc to close";
 
-/* Stubs (temporary) */
-"stub.translate.text" = "The clipboard translation will appear here (stage 7).";
-"stub.search" = "Search";
-"stub.typed" = "You typed: %@";
 
 /* OCR */
 "ocr.hud.noPermission" = "Screen Recording permission is needed — allow it in System Settings";
@@ -207,3 +201,33 @@
 "clipboard.settings.autoPaste" = "Paste the selected item right away";
 "clipboard.settings.restorePrevious" = "Restore the previous clipboard after pasting";
 "clipboard.settings.windowFooter" = "With pasting off, the item is only copied. Pasting automatically needs the Accessibility permission. If the text cursor can’t be found, the window opens at the mouse pointer.";
+
+/* Translation */
+"translate.action.show" = "Show Translation of Text";
+"translate.engine.apple" = "Apple Translation (on device)";
+"translate.window.autoDetect" = "Detected";
+"translate.window.chooseTarget" = "Choose the target language";
+"translate.window.swap" = "Switch between the primary and fallback language";
+"translate.window.original" = "Original";
+"translate.window.translating" = "Translating…";
+"translate.window.download" = "Download Languages…";
+"translate.window.copy" = "Copy Translation";
+"translate.error.notInstalled" = "Language data isn’t downloaded";
+"translate.error.unsupported" = "This language pair isn’t supported";
+"translate.error.unknownLanguage" = "Couldn’t identify the language";
+"translate.error.empty" = "Nothing to translate";
+"translate.error.generic" = "Couldn’t translate";
+"translate.hud.noText" = "There’s no text on the clipboard";
+"translate.hud.copied" = "Translation copied";
+"translate.confirm.title" = "Translate %d characters?";
+"translate.confirm.message" = "The text is long; translation may take a while.";
+"translate.confirm.translate" = "Translate";
+"translate.confirm.cancel" = "Cancel";
+"translate.settings.languages" = "Languages";
+"translate.settings.primary" = "Translate into";
+"translate.settings.fallback" = "If already in that language, into";
+"translate.settings.languagesFooter" = "The source language is detected automatically. You can change the direction in the translation window.";
+"translate.settings.autoCopy" = "Copy the translation to the clipboard automatically";
+"translate.settings.engine" = "Translation engine";
+"translate.settings.manageLanguages" = "Language Downloads in System Settings…";
+"translate.settings.engineFooter" = "Translation runs on device and works offline. The system downloads language data once. DeepL and Google arrive in stage 8.";

@@ -34,8 +34,6 @@
 "feature.clipboard.title" = "История буфера обмена";
 "clipboard.action.showHistory" = "История буфера обмена";
 
-/* Stubs (temporary) */
-"stub.settings" = "Настройки этой функции появятся на следующих этапах.";
 
 /* Shortcuts */
 "shortcut.recorder.press" = "Нажмите сочетание…";
@@ -109,10 +107,6 @@
 "panel.pin" = "Закрепить: не закрывать при клике мимо";
 "panel.hint" = "Esc — закрыть";
 
-/* Stubs (temporary) */
-"stub.translate.text" = "Здесь будет перевод текста из буфера обмена (этап 7).";
-"stub.search" = "Поиск";
-"stub.typed" = "Вы ввели: %@";
 
 /* OCR */
 "ocr.hud.noPermission" = "Нужно разрешение «Запись экрана» — выдайте его в Системных настройках";
@@ -207,3 +201,33 @@
 "clipboard.settings.autoPaste" = "Сразу вставлять выбранное";
 "clipboard.settings.restorePrevious" = "Возвращать прежнее содержимое буфера после вставки";
 "clipboard.settings.windowFooter" = "Если сразу вставлять выключено, выбранное только копируется. Для автоматической вставки нужно разрешение «Универсальный доступ». Если текстовый курсор не удаётся найти, окно откроется у курсора мыши.";
+
+/* Translation */
+"translate.action.show" = "Показать перевод текста";
+"translate.engine.apple" = "Apple Translation (на устройстве)";
+"translate.window.autoDetect" = "Автоопределение";
+"translate.window.chooseTarget" = "Выбрать язык перевода";
+"translate.window.swap" = "Переключить между основным и запасным языком";
+"translate.window.original" = "Оригинал";
+"translate.window.translating" = "Перевожу…";
+"translate.window.download" = "Загрузить языки…";
+"translate.window.copy" = "Скопировать перевод";
+"translate.error.notInstalled" = "Языковой пакет не загружен";
+"translate.error.unsupported" = "Эта пара языков не поддерживается";
+"translate.error.unknownLanguage" = "Не удалось определить язык текста";
+"translate.error.empty" = "Нечего переводить";
+"translate.error.generic" = "Не удалось перевести";
+"translate.hud.noText" = "В буфере обмена нет текста";
+"translate.hud.copied" = "Перевод скопирован";
+"translate.confirm.title" = "Перевести %d символов?";
+"translate.confirm.message" = "Текст длинный, перевод может занять время.";
+"translate.confirm.translate" = "Перевести";
+"translate.confirm.cancel" = "Отмена";
+"translate.settings.languages" = "Языки";
+"translate.settings.primary" = "Переводить на";
+"translate.settings.fallback" = "Если текст уже на этом языке — на";
+"translate.settings.languagesFooter" = "Язык исходного текста определяется автоматически. В окне перевода направление можно сменить вручную.";
+"translate.settings.autoCopy" = "Автоматически копировать перевод в буфер";
+"translate.settings.engine" = "Движок перевода";
+"translate.settings.manageLanguages" = "Языковые пакеты в Системных настройках…";
+"translate.settings.engineFooter" = "Перевод выполняется на устройстве и работает без интернета. Языковые пакеты система загружает один раз. DeepL и Google появятся на этапе 8.";

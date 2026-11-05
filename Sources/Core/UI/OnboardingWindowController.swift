@@ -124,7 +124,7 @@ struct OnboardingView: View {
 
     private var actionRows: [ActionRow] {
         registry.features.filter { registry.isEnabled(FeatureRegistry.id(of: $0)) }.flatMap { feature in
-            feature.actions.map { action in
+            feature.actions.filter { !$0.isInternal }.map { action in
                 ActionRow(
                     id: action.id, title: action.title, icon: feature.icon,
                     shortcut: context.hotkeys.shortcut(for: action.id)?.description
