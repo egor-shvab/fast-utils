@@ -110,8 +110,23 @@
 "panel.hint" = "Esc to close";
 
 /* Stubs (temporary) */
-"stub.ocr.hud" = "Text recognition arrives in stage 4";
 "stub.translate.text" = "The clipboard translation will appear here (stage 7).";
 "stub.clipboard.text" = "Clipboard history will appear here (stage 6). Try typing in the search field — the panel takes input without stealing focus from the current app.";
 "stub.search" = "Search";
 "stub.typed" = "You typed: %@";
+
+/* OCR */
+"ocr.hud.noPermission" = "Screen Recording permission is needed — allow it in System Settings";
+"ocr.hud.failed" = "Couldn’t recognize text";
+"ocr.hud.notFound" = "No text found";
+"ocr.settings.languages" = "Recognition Languages";
+"ocr.settings.languagesFooter" = "The number is the language priority. Fewer languages give more accurate results.";
+"ocr.settings.autoDetect" = "Detect language automatically";
+"ocr.settings.result" = "Result";
+"ocr.settings.lineMode" = "Line breaks";
+"ocr.settings.lineMode.asOnScreen" = "As on screen";
+"ocr.settings.lineMode.joinParagraphs" = "Join lines into paragraphs";
+"ocr.settings.showResultWindow" = "Show the result in a window before copying";
+"ocr.settings.playSound" = "Play a sound after recognition";
+"ocr.result.title" = "Recognized Text";
+"ocr.result.copy" = "Copy";

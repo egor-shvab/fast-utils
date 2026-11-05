@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import OSLog
 
@@ -16,6 +17,8 @@ public final class AppContext {
     public let hud: HUDService
     public let panels: PanelService
     public let launchAtLogin: LaunchAtLogin
+    public let pasteboard: PasteboardService
+    public let areaSelection: AreaSelectionService
 
     public init(
         settings: SettingsStore = SettingsStore(),
@@ -24,7 +27,8 @@ public final class AppContext {
         events: EventBus = EventBus(),
         actions: ActionRegistry = ActionRegistry(),
         hotkeyRegistrar: any HotkeyRegistrar = CarbonHotkeyRegistrar(),
-        permissionChecker: any PermissionChecker = SystemPermissionChecker()
+        permissionChecker: any PermissionChecker = SystemPermissionChecker(),
+        pasteboard: PasteboardService = PasteboardService()
     ) {
         self.settings = settings
         self.secrets = secrets
@@ -41,6 +45,8 @@ public final class AppContext {
         self.hud = HUDService(settings: settings.app)
         self.panels = PanelService()
         self.launchAtLogin = LaunchAtLogin()
+        self.pasteboard = pasteboard
+        self.areaSelection = AreaSelectionService()
     }
 
     /// Logger for a category, e.g. `context.logger("ocr")`.
@@ -63,7 +69,8 @@ public final class AppContext {
                 baseURL: FileManager.default.temporaryDirectory.appending(path: suite, directoryHint: .isDirectory)
             ),
             hotkeyRegistrar: hotkeys,
-            permissionChecker: permissions
+            permissionChecker: permissions,
+            pasteboard: PasteboardService(pasteboard: NSPasteboard(name: NSPasteboard.Name(suite)))
         )
     }
 }

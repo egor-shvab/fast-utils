@@ -110,8 +110,23 @@
 "panel.hint" = "Esc — закрыть";
 
 /* Stubs (temporary) */
-"stub.ocr.hud" = "Распознавание текста появится на этапе 4";
 "stub.translate.text" = "Здесь будет перевод текста из буфера обмена (этап 7).";
 "stub.clipboard.text" = "Здесь будет история буфера обмена (этап 6). Попробуйте ввести текст в поиск — окно принимает ввод, не забирая фокус у текущего приложения.";
 "stub.search" = "Поиск";
 "stub.typed" = "Вы ввели: %@";
+
+/* OCR */
+"ocr.hud.noPermission" = "Нужно разрешение «Запись экрана» — выдайте его в Системных настройках";
+"ocr.hud.failed" = "Не удалось распознать текст";
+"ocr.hud.notFound" = "Текст не найден";
+"ocr.settings.languages" = "Языки распознавания";
+"ocr.settings.languagesFooter" = "Цифра — приоритет языка. Чем меньше языков выбрано, тем точнее распознавание.";
+"ocr.settings.autoDetect" = "Определять язык автоматически";
+"ocr.settings.result" = "Результат";
+"ocr.settings.lineMode" = "Переносы строк";
+"ocr.settings.lineMode.asOnScreen" = "Как на экране";
+"ocr.settings.lineMode.joinParagraphs" = "Склеивать строки в абзацы";
+"ocr.settings.showResultWindow" = "Показывать результат в окне перед копированием";
+"ocr.settings.playSound" = "Звук после распознавания";
+"ocr.result.title" = "Распознанный текст";
+"ocr.result.copy" = "Скопировать";
