@@ -111,7 +111,6 @@
 
 /* Stubs (temporary) */
 "stub.translate.text" = "Здесь будет перевод текста из буфера обмена (этап 7).";
-"stub.clipboard.text" = "Здесь будет история буфера обмена (этап 6). Попробуйте ввести текст в поиск — окно принимает ввод, не забирая фокус у текущего приложения.";
 "stub.search" = "Поиск";
 "stub.typed" = "Вы ввели: %@";
 
@@ -130,3 +129,46 @@
 "ocr.settings.playSound" = "Звук после распознавания";
 "ocr.result.title" = "Распознанный текст";
 "ocr.result.copy" = "Скопировать";
+
+/* Clipboard history */
+"clipboard.action.togglePause" = "Приостановить или возобновить запись истории";
+"clipboard.menu.pause" = "Приостановить запись истории";
+"clipboard.menu.pause5m" = "На 5 минут";
+"clipboard.menu.pause1h" = "На 1 час";
+"clipboard.menu.pauseRestart" = "До перезапуска FastUtils";
+"clipboard.menu.pauseForever" = "Пока не включу";
+"clipboard.menu.resume" = "Возобновить запись истории";
+"clipboard.pause.until" = "Запись истории приостановлена до %@";
+"clipboard.pause.untilRestart" = "Запись истории приостановлена до перезапуска";
+"clipboard.pause.indefinitely" = "Запись истории приостановлена";
+"clipboard.hud.resumed" = "Запись истории возобновлена";
+"clipboard.hud.storeFailed" = "Не удалось открыть историю буфера обмена";
+"clipboard.settings.storage" = "Хранение";
+"clipboard.settings.storageFooter" = "Закреплённые записи не удаляются ни по количеству, ни по сроку.";
+"clipboard.settings.maxItems" = "Максимум записей";
+"clipboard.settings.maxAge" = "Хранить";
+"clipboard.settings.maxImage" = "Максимальный размер картинки";
+"clipboard.settings.age.forever" = "Бессрочно";
+"clipboard.settings.age.day" = "1 день";
+"clipboard.settings.age.week" = "Неделю";
+"clipboard.settings.age.month" = "Месяц";
+"clipboard.settings.age.3months" = "3 месяца";
+"clipboard.settings.kinds" = "Что сохранять";
+"clipboard.settings.storeText" = "Текст и ссылки";
+"clipboard.settings.storeImages" = "Изображения";
+"clipboard.settings.storeFiles" = "Файлы и папки";
+"clipboard.settings.privacy" = "Приватность";
+"clipboard.settings.ignoreConcealed" = "Не сохранять пароли из менеджеров паролей";
+"clipboard.settings.addApp" = "Добавить приложение…";
+"clipboard.settings.privacyFooter" = "Скопированное в приложениях из списка не сохраняется. Пароли менеджеры помечают специальной меткой — такие записи не сохраняются, если включён переключатель (рекомендуется).";
+"clipboard.settings.data" = "Данные";
+"clipboard.settings.items" = "Записей в истории";
+"clipboard.settings.diskUsage" = "Занимает на диске";
+"clipboard.settings.clear" = "Очистить историю…";
+"clipboard.clear.title" = "Очистить историю буфера обмена?";
+"clipboard.clear.message" = "Удалённые записи нельзя будет восстановить.";
+"clipboard.clear.keepPinned" = "Оставить закреплённые";
+"clipboard.clear.all" = "Удалить всё";
+"clipboard.clear.cancel" = "Отмена";
+"stub.clipboard.count" = "В истории %d записей. Окно истории появится на этапе 6. Попробуйте ввести текст в поиск — окно принимает ввод, не забирая фокус у текущего приложения.";
+"clipboard.settings.megabytes" = "%d МБ";

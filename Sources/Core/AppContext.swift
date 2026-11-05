@@ -19,6 +19,7 @@ public final class AppContext {
     public let launchAtLogin: LaunchAtLogin
     public let pasteboard: PasteboardService
     public let areaSelection: AreaSelectionService
+    public let statusIndicator = StatusIndicator()
 
     public init(
         settings: SettingsStore = SettingsStore(),
@@ -28,7 +29,7 @@ public final class AppContext {
         actions: ActionRegistry = ActionRegistry(),
         hotkeyRegistrar: any HotkeyRegistrar = CarbonHotkeyRegistrar(),
         permissionChecker: any PermissionChecker = SystemPermissionChecker(),
-        pasteboard: PasteboardService = PasteboardService()
+        pasteboard: NSPasteboard = .general
     ) {
         self.settings = settings
         self.secrets = secrets
@@ -45,7 +46,7 @@ public final class AppContext {
         self.hud = HUDService(settings: settings.app)
         self.panels = PanelService()
         self.launchAtLogin = LaunchAtLogin()
-        self.pasteboard = pasteboard
+        self.pasteboard = PasteboardService(pasteboard: pasteboard, events: events)
         self.areaSelection = AreaSelectionService()
     }
 
@@ -59,7 +60,8 @@ public final class AppContext {
     /// fake hot keys and permissions (nothing touches the system).
     public static func testing(
         hotkeys: FakeHotkeyRegistrar = FakeHotkeyRegistrar(),
-        permissions: FakePermissionChecker = FakePermissionChecker()
+        permissions: FakePermissionChecker = FakePermissionChecker(),
+        pasteboard: NSPasteboard? = nil
     ) -> AppContext {
         let suite = "FastUtilsTests.\(UUID().uuidString)"
         return AppContext(
@@ -70,7 +72,7 @@ public final class AppContext {
             ),
             hotkeyRegistrar: hotkeys,
             permissionChecker: permissions,
-            pasteboard: PasteboardService(pasteboard: NSPasteboard(name: NSPasteboard.Name(suite)))
+            pasteboard: pasteboard ?? NSPasteboard(name: NSPasteboard.Name(suite))
         )
     }
 }

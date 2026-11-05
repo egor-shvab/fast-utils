@@ -1,4 +1,10 @@
 import AppKit
+import Observation
+
+private final class HandlerBox: NSObject {
+    let handler: @MainActor () -> Void
+    init(_ handler: @escaping @MainActor () -> Void) { self.handler = handler }
+}
 
 /// The status bar icon and its menu. The menu is rebuilt each time it opens, so it always
 /// reflects which features are enabled.
@@ -24,6 +30,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
+        observeIndicator()
     }
 
     public func menuNeedsUpdate(_ menu: NSMenu) {
@@ -31,16 +38,11 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
 
         var hasFeatureItems = false
         for feature in registry.features where registry.isEnabled(FeatureRegistry.id(of: feature)) {
+            if hasFeatureItems && feature.menuItems.contains(where: { !$0.submenu.isEmpty || $0.actionID == nil }) {
+                menu.addItem(.separator())
+            }
             for descriptor in feature.menuItems {
-                let item = NSMenuItem(title: descriptor.title, action: #selector(runAction(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = descriptor.actionID.rawValue
-                if let shortcut = context.hotkeys.shortcut(for: descriptor.actionID),
-                   let key = shortcut.menuKeyEquivalent {
-                    item.keyEquivalent = key
-                    item.keyEquivalentModifierMask = shortcut.modifiers.eventFlags
-                }
-                menu.addItem(item)
+                menu.addItem(makeItem(descriptor))
                 hasFeatureItems = true
             }
         }
@@ -62,6 +64,34 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
                      action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     }
 
+    private func makeItem(_ descriptor: MenuItemDescriptor) -> NSMenuItem {
+        let item = NSMenuItem(title: descriptor.title, action: nil, keyEquivalent: "")
+        item.state = descriptor.isChecked ? .on : .off
+        if !descriptor.submenu.isEmpty {
+            let submenu = NSMenu()
+            descriptor.submenu.forEach { submenu.addItem(makeItem($0)) }
+            item.submenu = submenu
+        } else if let actionID = descriptor.actionID {
+            item.action = #selector(runAction(_:))
+            item.target = self
+            item.representedObject = actionID.rawValue
+            if let shortcut = context.hotkeys.shortcut(for: actionID), let key = shortcut.menuKeyEquivalent {
+                item.keyEquivalent = key
+                item.keyEquivalentModifierMask = shortcut.modifiers.eventFlags
+            }
+        } else if let handler = descriptor.handler {
+            item.action = #selector(runHandler(_:))
+            item.target = self
+            item.representedObject = HandlerBox(handler)
+        }
+        item.isEnabled = descriptor.isEnabled && (item.action != nil || item.submenu != nil)
+        return item
+    }
+
+    @objc private func runHandler(_ sender: NSMenuItem) {
+        (sender.representedObject as? HandlerBox)?.handler()
+    }
+
     @objc private func runAction(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
         let id = ActionID(raw)
@@ -77,5 +107,25 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func showSettings() { openSettings(.general) }
+
+    /// Updates the icon when a feature reports a state (e.g. clipboard history paused).
+    private func observeIndicator() {
+        withObservationTracking {
+            _ = context.statusIndicator.symbol
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.applyIndicator()
+                self?.observeIndicator()
+            }
+        }
+    }
+
+    private func applyIndicator() {
+        let symbol = context.statusIndicator.symbol ?? "text.viewfinder"
+        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: AppInfo.name)
+        image?.isTemplate = true
+        statusItem.button?.image = image
+        statusItem.button?.toolTip = context.statusIndicator.tooltip
+    }
     @objc private func showAbout() { openSettings(.about) }
 }

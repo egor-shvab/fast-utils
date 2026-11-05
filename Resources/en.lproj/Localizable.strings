@@ -111,7 +111,6 @@
 
 /* Stubs (temporary) */
 "stub.translate.text" = "The clipboard translation will appear here (stage 7).";
-"stub.clipboard.text" = "Clipboard history will appear here (stage 6). Try typing in the search field — the panel takes input without stealing focus from the current app.";
 "stub.search" = "Search";
 "stub.typed" = "You typed: %@";
 
@@ -130,3 +129,46 @@
 "ocr.settings.playSound" = "Play a sound after recognition";
 "ocr.result.title" = "Recognized Text";
 "ocr.result.copy" = "Copy";
+
+/* Clipboard history */
+"clipboard.action.togglePause" = "Pause or Resume History Recording";
+"clipboard.menu.pause" = "Pause History Recording";
+"clipboard.menu.pause5m" = "For 5 Minutes";
+"clipboard.menu.pause1h" = "For 1 Hour";
+"clipboard.menu.pauseRestart" = "Until FastUtils Restarts";
+"clipboard.menu.pauseForever" = "Until I Resume";
+"clipboard.menu.resume" = "Resume History Recording";
+"clipboard.pause.until" = "History recording paused until %@";
+"clipboard.pause.untilRestart" = "History recording paused until restart";
+"clipboard.pause.indefinitely" = "History recording paused";
+"clipboard.hud.resumed" = "History recording resumed";
+"clipboard.hud.storeFailed" = "Couldn’t open clipboard history";
+"clipboard.settings.storage" = "Storage";
+"clipboard.settings.storageFooter" = "Pinned items are never removed by count or age.";
+"clipboard.settings.maxItems" = "Maximum items";
+"clipboard.settings.maxAge" = "Keep";
+"clipboard.settings.maxImage" = "Maximum image size";
+"clipboard.settings.age.forever" = "Forever";
+"clipboard.settings.age.day" = "1 day";
+"clipboard.settings.age.week" = "A week";
+"clipboard.settings.age.month" = "A month";
+"clipboard.settings.age.3months" = "3 months";
+"clipboard.settings.kinds" = "What to Keep";
+"clipboard.settings.storeText" = "Text and links";
+"clipboard.settings.storeImages" = "Images";
+"clipboard.settings.storeFiles" = "Files and folders";
+"clipboard.settings.privacy" = "Privacy";
+"clipboard.settings.ignoreConcealed" = "Don’t keep passwords from password managers";
+"clipboard.settings.addApp" = "Add App…";
+"clipboard.settings.privacyFooter" = "Nothing copied in the listed apps is kept. Password managers mark passwords with a special flag — such items are skipped while the switch is on (recommended).";
+"clipboard.settings.data" = "Data";
+"clipboard.settings.items" = "Items in history";
+"clipboard.settings.diskUsage" = "Disk usage";
+"clipboard.settings.clear" = "Clear History…";
+"clipboard.clear.title" = "Clear clipboard history?";
+"clipboard.clear.message" = "Deleted items can’t be restored.";
+"clipboard.clear.keepPinned" = "Keep Pinned";
+"clipboard.clear.all" = "Delete All";
+"clipboard.clear.cancel" = "Cancel";
+"stub.clipboard.count" = "%d items in history. The history window arrives in stage 6. Try typing in the search field — the panel takes input without stealing focus from the current app.";
+"clipboard.settings.megabytes" = "%d MB";

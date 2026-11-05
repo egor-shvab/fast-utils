@@ -37,13 +37,41 @@ public struct FeatureAction {
     }
 }
 
-/// An entry in the status bar menu that runs an action.
-public struct MenuItemDescriptor: Sendable {
-    public let actionID: ActionID
+/// An entry in the status bar menu. Built each time the menu opens, so it can reflect state.
+@MainActor
+public struct MenuItemDescriptor {
     public let title: String
+    /// Runs this action; its shortcut is shown next to the item.
+    public let actionID: ActionID?
+    /// Runs this closure instead of an action (state toggles that need no hotkey).
+    public let handler: (@MainActor () -> Void)?
+    public let isChecked: Bool
+    public let isEnabled: Bool
+    public let submenu: [MenuItemDescriptor]
 
     public init(actionID: ActionID, title: String) {
-        self.actionID = actionID
+        self.init(title: title, actionID: actionID, handler: nil, isChecked: false, isEnabled: true, submenu: [])
+    }
+
+    init(title: String, actionID: ActionID?, handler: (@MainActor () -> Void)?, isChecked: Bool, isEnabled: Bool,
+         submenu: [MenuItemDescriptor]) {
         self.title = title
+        self.actionID = actionID
+        self.handler = handler
+        self.isChecked = isChecked
+        self.isEnabled = isEnabled
+        self.submenu = submenu
+    }
+
+    public static func custom(_ title: String, isChecked: Bool = false, handler: @escaping @MainActor () -> Void) -> Self {
+        Self(title: title, actionID: nil, handler: handler, isChecked: isChecked, isEnabled: true, submenu: [])
+    }
+
+    public static func label(_ title: String) -> Self {
+        Self(title: title, actionID: nil, handler: nil, isChecked: false, isEnabled: false, submenu: [])
+    }
+
+    public static func submenu(_ title: String, _ items: [MenuItemDescriptor]) -> Self {
+        Self(title: title, actionID: nil, handler: nil, isChecked: false, isEnabled: true, submenu: items)
     }
 }

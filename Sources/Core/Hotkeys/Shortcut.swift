@@ -75,8 +75,7 @@ public struct Shortcut: Hashable, Codable, Sendable, CustomStringConvertible {
         self.init(keyCode, modifiers)
     }
 
-    /// "⇧⌘2". Letters and digits come from the user's ASCII-capable layout, so a Russian
-    /// layout still shows Latin key caps, like macOS menus do.
+    /// "⇧⌘2". Letters are Latin key caps even with a Russian layout, like macOS menus show them.
     public var description: String { modifiers.symbols + keyName }
 
     public var keyName: String {
@@ -118,23 +117,26 @@ public struct Shortcut: Hashable, Codable, Sendable, CustomStringConvertible {
         kVK_Home: "↖", kVK_End: "↘", kVK_PageUp: "⇞", kVK_PageDown: "⇟",
     ]
 
-    /// The character a key produces in the current ASCII-capable layout (US, ABC, …).
-    static func character(for keyCode: Int) -> String? {
-        guard let source = TISCopyCurrentASCIICapableKeyboardLayoutInputSource()?.takeRetainedValue(),
-              let pointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)
-        else { return nil }
-        let layoutData = Unmanaged<CFData>.fromOpaque(pointer).takeUnretainedValue() as Data
-        return layoutData.withUnsafeBytes { raw -> String? in
-            guard let layout = raw.baseAddress?.assumingMemoryBound(to: UCKeyboardLayout.self) else { return nil }
-            var deadKeyState: UInt32 = 0
-            var length = 0
-            var chars = [UniChar](repeating: 0, count: 4)
-            let status = UCKeyTranslate(
-                layout, UInt16(keyCode), UInt16(kUCKeyActionDisplay), 0, UInt32(LMGetKbdType()),
-                OptionBits(kUCKeyTranslateNoDeadKeysBit), &deadKeyState, chars.count, &length, &chars
-            )
-            guard status == noErr, length > 0 else { return nil }
-            return String(utf16CodeUnits: chars, count: length)
-        }
-    }
+    /// Latin key caps of the physical keys (ANSI layout — what macOS menus show for shortcuts).
+    /// A static table on purpose: the Text Input Sources API aborts the process when called
+    /// from two threads at once, and `description` may be called from any thread.
+    static let characters: [Int: String] = [
+        kVK_ANSI_A: "a", kVK_ANSI_B: "b", kVK_ANSI_C: "c", kVK_ANSI_D: "d", kVK_ANSI_E: "e", kVK_ANSI_F: "f",
+        kVK_ANSI_G: "g", kVK_ANSI_H: "h", kVK_ANSI_I: "i", kVK_ANSI_J: "j", kVK_ANSI_K: "k", kVK_ANSI_L: "l",
+        kVK_ANSI_M: "m", kVK_ANSI_N: "n", kVK_ANSI_O: "o", kVK_ANSI_P: "p", kVK_ANSI_Q: "q", kVK_ANSI_R: "r",
+        kVK_ANSI_S: "s", kVK_ANSI_T: "t", kVK_ANSI_U: "u", kVK_ANSI_V: "v", kVK_ANSI_W: "w", kVK_ANSI_X: "x",
+        kVK_ANSI_Y: "y", kVK_ANSI_Z: "z",
+        kVK_ANSI_0: "0", kVK_ANSI_1: "1", kVK_ANSI_2: "2", kVK_ANSI_3: "3", kVK_ANSI_4: "4",
+        kVK_ANSI_5: "5", kVK_ANSI_6: "6", kVK_ANSI_7: "7", kVK_ANSI_8: "8", kVK_ANSI_9: "9",
+        kVK_ANSI_Minus: "-", kVK_ANSI_Equal: "=", kVK_ANSI_LeftBracket: "[", kVK_ANSI_RightBracket: "]",
+        kVK_ANSI_Backslash: "\\", kVK_ANSI_Semicolon: ";", kVK_ANSI_Quote: "'", kVK_ANSI_Comma: ",",
+        kVK_ANSI_Period: ".", kVK_ANSI_Slash: "/", kVK_ANSI_Grave: "`", kVK_ISO_Section: "§",
+        kVK_ANSI_Keypad0: "0", kVK_ANSI_Keypad1: "1", kVK_ANSI_Keypad2: "2", kVK_ANSI_Keypad3: "3",
+        kVK_ANSI_Keypad4: "4", kVK_ANSI_Keypad5: "5", kVK_ANSI_Keypad6: "6", kVK_ANSI_Keypad7: "7",
+        kVK_ANSI_Keypad8: "8", kVK_ANSI_Keypad9: "9", kVK_ANSI_KeypadDecimal: ".", kVK_ANSI_KeypadPlus: "+",
+        kVK_ANSI_KeypadMinus: "-", kVK_ANSI_KeypadMultiply: "*", kVK_ANSI_KeypadDivide: "/",
+        kVK_ANSI_KeypadEquals: "=",
+    ]
+
+    static func character(for keyCode: Int) -> String? { characters[keyCode] }
 }
