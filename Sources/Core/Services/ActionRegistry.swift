@@ -36,6 +36,13 @@ public final class ActionRegistry {
 
     public func contains(_ id: ActionID) -> Bool { actions[id] != nil }
 
+    /// Actions of enabled features that work on `kind`, except those of `excluding` feature.
+    public func actions(accepting kind: ActionInputKind, excluding feature: FeatureID? = nil) -> [FeatureAction] {
+        actions.values
+            .filter { $0.accepts.contains(kind) && owners[$0.id] != feature }
+            .sorted { $0.id.rawValue < $1.id.rawValue }
+    }
+
     @discardableResult
     public func perform(_ id: ActionID, input: ActionInput = .none) async throws -> ActionOutput {
         guard let action = actions[id] else { throw ActionError.notFound(id) }

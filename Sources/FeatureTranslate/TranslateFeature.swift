@@ -33,11 +33,14 @@ public final class TranslateFeature: Feature {
                 title: String(localized: "translate.action.clipboard"),
                 defaultShortcut: Shortcut(kVK_ANSI_T, [.option, .command])
             ) { [weak self] _ in
-                self?.translateClipboard()
+                await self?.translateClipboard()
                 return .none
             },
-            // For chains (stage 9: "recognize and translate"): input `.text`.
-            FeatureAction(id: "translate.show", title: String(localized: "translate.action.show"), isInternal: true) { [weak self] input in
+            // For chains ("recognize and translate") and the history menu: input `.text`.
+            FeatureAction(
+                id: "translate.show", title: String(localized: "translate.action.show"), isInternal: true,
+                accepts: [.text], contentTitle: String(localized: "translate.action.translate")
+            ) { [weak self] input in
                 guard case .text(let text) = input else { return .none }
                 self?.show(text)
                 return .none
@@ -51,19 +54,42 @@ public final class TranslateFeature: Feature {
 
     // MARK: Actions
 
-    func translateClipboard() {
+    /// ⌥⌘T: the selection (if enabled and present), else clipboard text, else text on a
+    /// clipboard image (via the OCR feature's action).
+    func translateClipboard() async {
         // Pressing the shortcut again closes the window.
         if context.panels.isPresented(Self.panelID) {
             context.panels.close(Self.panelID)
             return
         }
-        guard let text = context.pasteboard.readText(),
-              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        else {
-            context.hud.show(String(localized: "translate.hud.noText"), icon: "character.bubble", style: .info)
+        if settings.translateSelection, let selected = await context.paste.copySelection() {
+            show(selected)
             return
         }
-        show(text)
+        if let text = context.pasteboard.readText(), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            show(text)
+            return
+        }
+        if let image = context.pasteboard.readImage() {
+            await translateImage(image)
+            return
+        }
+        context.hud.show(String(localized: "translate.hud.noText"), icon: "character.bubble", style: .info)
+    }
+
+    private func translateImage(_ image: CGImage) async {
+        do {
+            let output = try await context.actions.perform("ocr.recognizeImage", input: .image(image))
+            guard case .text(let text) = output, !text.isEmpty else {
+                context.hud.show(String(localized: "translate.hud.noTextOnImage"), icon: "photo", style: .info)
+                return
+            }
+            show(text)
+        } catch ActionError.notFound {
+            context.hud.show(String(localized: "translate.hud.enableOCR"), icon: "photo", style: .info)
+        } catch {
+            context.hud.show(String(localized: "translate.hud.noTextOnImage"), icon: "photo", style: .info)
+        }
     }
 
     func show(_ rawText: String) {

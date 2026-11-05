@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import Carbon.HIToolbox
 import Core
 import OSLog
@@ -220,15 +221,66 @@ public final class ClipboardFeature: Feature {
             Task { await self?.copy(item) }
         }
         model.onClose = { [weak self] in self?.context.panels.close(Self.panelID) }
+        model.previewOnSelect = settings.previewOnSelect
+        model.contentActions = { [weak self] item in self?.contentActions(for: item) ?? [] }
+        model.onRunAction = { [weak self] item, action in
+            Task { await self?.run(action, on: item) }
+        }
 
         let handle = context.panels.present(
-            id: Self.panelID, size: CGSize(width: 440, height: 540), placement: placement(),
+            id: Self.panelID, size: CGSize(width: settings.previewOnSelect ? 820 : 440, height: 540), placement: placement(),
             onClose: { [weak self] in self?.removeKeyMonitor() }
         ) { _ in
             HistoryView(model: model)
         }
         installKeyMonitor(for: handle.window, model: model)
         log.notice("History window opened in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
+    }
+
+    /// Actions of other features that can work on this item (TZ.md §12.4).
+    func contentActions(for item: ClipItem) -> [FeatureAction] {
+        let kind: ActionInputKind? = switch item.kind {
+        case .text, .link: .text
+        case .image: .image
+        case .files: nil
+        }
+        guard let kind else { return [] }
+        return context.actions.actions(accepting: kind, excluding: Self.id)
+    }
+
+    /// Runs another feature's action on an item; a text result is copied.
+    func run(_ action: FeatureAction, on item: ClipItem) async {
+        context.panels.close(Self.panelID)
+        let full = (try? await store?.item(item.id)) ?? item
+        let input: ActionInput
+        switch full.kind {
+        case .text, .link:
+            input = .text(full.text ?? "")
+        case .image:
+            guard let url = full.imageURL, let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+            else {
+                context.hud.show(String(localized: "clipboard.hud.imageMissing"), style: .error)
+                return
+            }
+            input = .image(image)
+        case .files:
+            return
+        }
+        do {
+            let output = try await context.actions.perform(action.id, input: input)
+            if case .text(let text) = output {
+                if text.isEmpty {
+                    context.hud.show(String(localized: "clipboard.hud.noResult"), style: .info)
+                } else {
+                    context.pasteboard.writeText(text)
+                    context.hud.show(String(localized: "clipboard.hud.copied"))
+                }
+            }
+        } catch {
+            log.error("Action \(action.id.rawValue, privacy: .public) on history item failed: \(String(describing: error), privacy: .public)")
+            context.hud.show(String(localized: "clipboard.hud.actionFailed"), style: .error)
+        }
     }
 
     private func placement() -> PanelService.Placement {

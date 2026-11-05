@@ -17,6 +17,34 @@ public final class SettingsStore {
 
     /// App-wide settings that belong to no feature.
     public var app: ScopedSettings { scoped("app") }
+
+    // MARK: Export / import
+
+    /// Namespaces that belong to FastUtils. Secrets are never here (they live in the Keychain).
+    static let exportedPrefixes = ["app.", "features.", "hotkeys.", "ocr.", "translate.", "clipboard."]
+
+    /// All FastUtils settings as JSON (TZ.md §10).
+    public func exportJSON() throws -> Data {
+        let values = defaults.dictionaryRepresentation().filter { key, value in
+            Self.exportedPrefixes.contains(where: key.hasPrefix) && JSONSerialization.isValidJSONObject([value])
+        }
+        return try JSONSerialization.data(withJSONObject: values, options: [.prettyPrinted, .sortedKeys])
+    }
+
+    /// Applies exported settings; unknown keys are ignored. Returns how many were applied.
+    /// Features read settings at launch, so the app should restart afterwards.
+    @discardableResult
+    public func importJSON(_ data: Data) throws -> Int {
+        guard let values = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        var applied = 0
+        for (key, value) in values where Self.exportedPrefixes.contains(where: key.hasPrefix) {
+            defaults.set(value, forKey: key)
+            applied += 1
+        }
+        return applied
+    }
 }
 
 @MainActor

@@ -88,6 +88,9 @@ struct TranslateSettingsView: View {
 
             Section {
                 Toggle(String(localized: "translate.settings.autoCopy"), isOn: $settings.autoCopy)
+                Toggle(String(localized: "translate.settings.translateSelection"), isOn: $settings.translateSelection)
+            } footer: {
+                Text(String(localized: "translate.settings.sourceFooter")).foregroundStyle(.secondary)
             }
 
             Section {

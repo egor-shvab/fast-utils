@@ -24,6 +24,8 @@ final class ClipboardSettings {
     /// `false` = "copy only, don't paste".
     var autoPaste: Bool { didSet { store.set(autoPaste, for: "autoPaste") } }
     var restorePrevious: Bool { didSet { store.set(restorePrevious, for: "restorePrevious") } }
+    /// Show the selected item's full content next to the list (otherwise: Space / ⌘Y).
+    var previewOnSelect: Bool { didSet { store.set(previewOnSelect, for: "previewOnSelect") } }
 
     enum WindowPosition: String, CaseIterable, Sendable { case mouse, center, textCursor }
 
@@ -44,6 +46,7 @@ final class ClipboardSettings {
         windowPosition = WindowPosition(rawValue: store.value("windowPosition", default: "")) ?? .mouse
         autoPaste = store.value("autoPaste", default: true)
         restorePrevious = store.value("restorePrevious", default: false)
+        previewOnSelect = store.value("previewOnSelect", default: false)
     }
 
     var maxAge: TimeInterval? { maxAgeDays > 0 ? TimeInterval(maxAgeDays) * 86_400 : nil }

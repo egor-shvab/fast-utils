@@ -32,7 +32,14 @@ struct OCRSettingsView: View {
                     Text(String(localized: "ocr.settings.lineMode.asOnScreen")).tag(LineMode.asOnScreen)
                     Text(String(localized: "ocr.settings.lineMode.joinParagraphs")).tag(LineMode.joinParagraphs)
                 }
+                Picker(String(localized: "ocr.settings.codes"), selection: $settings.codeMode) {
+                    Text(String(localized: "ocr.settings.codes.off")).tag(OCRSettings.CodeMode.off)
+                    Text(String(localized: "ocr.settings.codes.withText")).tag(OCRSettings.CodeMode.withText)
+                    Text(String(localized: "ocr.settings.codes.codeOnly")).tag(OCRSettings.CodeMode.codeOnly)
+                }
                 Toggle(String(localized: "ocr.settings.showResultWindow"), isOn: $settings.showResultWindow)
+                Toggle(String(localized: "ocr.settings.copyWhenTranslating"), isOn: $settings.copyWhenTranslating)
+                Toggle(String(localized: "ocr.settings.showMagnifier"), isOn: $settings.showMagnifier)
                 Toggle(String(localized: "ocr.settings.playSound"), isOn: $settings.playSound)
             } header: {
                 Text(String(localized: "ocr.settings.result"))

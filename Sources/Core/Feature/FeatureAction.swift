@@ -5,6 +5,21 @@ public enum ActionInput {
     case none
     case text(String)
     case image(CGImage)
+
+    public var kind: ActionInputKind? {
+        switch self {
+        case .none: nil
+        case .text: .text
+        case .image: .image
+        }
+    }
+}
+
+/// What an action can work on — used to offer it on other features' content
+/// (e.g. "Translate" on a text item in clipboard history).
+public enum ActionInputKind: Hashable, Sendable {
+    case text
+    case image
 }
 
 /// Data an action produces.
@@ -24,6 +39,10 @@ public struct FeatureAction {
     public let defaultShortcut: Shortcut?
     /// Only for other features (chains): not shown in the menu, shortcuts or onboarding.
     public let isInternal: Bool
+    /// Inputs this action accepts. Non-empty → offered on matching content elsewhere,
+    /// titled `contentTitle` (e.g. the history item context menu).
+    public let accepts: Set<ActionInputKind>
+    public let contentTitle: String?
     public let perform: @MainActor (ActionInput) async throws -> ActionOutput
 
     public init(
@@ -31,12 +50,16 @@ public struct FeatureAction {
         title: String,
         defaultShortcut: Shortcut? = nil,
         isInternal: Bool = false,
+        accepts: Set<ActionInputKind> = [],
+        contentTitle: String? = nil,
         perform: @escaping @MainActor (ActionInput) async throws -> ActionOutput
     ) {
         self.id = id
         self.title = title
         self.defaultShortcut = defaultShortcut
         self.isInternal = isInternal
+        self.accepts = accepts
+        self.contentTitle = contentTitle
         self.perform = perform
     }
 }

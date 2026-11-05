@@ -31,8 +31,13 @@ public final class SystemKeystrokeSender: KeystrokeSender {
 public final class FakeKeystrokeSender: KeystrokeSender {
     public var canSend = true
     public private(set) var sent: [(keyCode: Int, modifiers: CGEventFlags)] = []
+    /// Simulates the target app reacting to a key (e.g. putting the selection on the clipboard).
+    public var onSend: ((Int) -> Void)?
     public init() {}
-    public func send(keyCode: Int, modifiers: CGEventFlags) { sent.append((keyCode, modifiers)) }
+    public func send(keyCode: Int, modifiers: CGEventFlags) {
+        sent.append((keyCode, modifiers))
+        onSend?(keyCode)
+    }
 }
 
 /// Puts content on the clipboard and pastes it into the app the user was in (TZ.md §7.4).
@@ -55,6 +60,43 @@ public final class PasteService {
         self.pasteboard = pasteboard
         self.keystrokes = keystrokes
     }
+
+    /// Copies the selected text of the frontmost app (⌘C) and puts the previous clipboard back.
+    /// Leaves no trace in clipboard history. `nil` when nothing is selected or there is no
+    /// Accessibility permission.
+    public func copySelection() async -> String? {
+        guard keystrokes.canSend else { return nil }
+        // The user may still hold the hotkey's ⌥/⌘: wait for release so the app gets a clean ⌘C.
+        for _ in 0..<25 where !NSEvent.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty {
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        pasteboard.suspendMonitoring()
+        defer { pasteboard.resumeMonitoring() }
+
+        let previous = pasteboard.readSnapshot(bypassingFilter: true)
+        let before = pasteboard.changeCount
+        keystrokes.send(keyCode: kVK_ANSI_C, modifiers: .maskCommand)
+
+        var text: String?
+        for _ in 0..<Int(selectionTimeout / .milliseconds(20)) {
+            try? await Task.sleep(for: .milliseconds(20))
+            if pasteboard.changeCount != before {
+                text = pasteboard.readText()
+                break
+            }
+        }
+        if text != nil {
+            if let previous {
+                pasteboard.write(previous, recordInHistory: false)
+            } else {
+                pasteboard.clear()
+            }
+        }
+        return text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? text : nil
+    }
+
+    /// How long to wait for the app to put the selection on the clipboard.
+    var selectionTimeout: Duration = .milliseconds(300)
 
     /// - Parameters:
     ///   - targetApp: the app that was frontmost before our panel appeared.

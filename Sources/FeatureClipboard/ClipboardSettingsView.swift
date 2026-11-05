@@ -32,6 +32,7 @@ struct ClipboardSettingsView: View {
                 Toggle(String(localized: "clipboard.settings.autoPaste"), isOn: $settings.autoPaste)
                 Toggle(String(localized: "clipboard.settings.restorePrevious"), isOn: $settings.restorePrevious)
                     .disabled(!settings.autoPaste)
+                Toggle(String(localized: "clipboard.settings.previewOnSelect"), isOn: $settings.previewOnSelect)
             } header: {
                 Text(String(localized: "clipboard.settings.window"))
             } footer: {

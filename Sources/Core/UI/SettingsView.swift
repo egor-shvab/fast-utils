@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     let registry: FeatureRegistry
@@ -8,7 +9,7 @@ struct SettingsView: View {
 
     var body: some View {
         TabView(selection: $navigation.selectedTab) {
-            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud)
+            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud, settings: context.settings)
                 .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
 
@@ -54,6 +55,7 @@ struct GeneralSettingsView: View {
     let registry: FeatureRegistry
     let launchAtLogin: LaunchAtLogin
     @Bindable var hud: HUDService
+    let settings: SettingsStore
 
     var body: some View {
         Form {
@@ -93,8 +95,65 @@ struct GeneralSettingsView: View {
                 Text(String(localized: "settings.general.featuresFooter"))
                     .foregroundStyle(.secondary)
             }
+            Section {
+                HStack {
+                    Button(String(localized: "settings.general.export"), action: exportSettings)
+                    Button(String(localized: "settings.general.import"), action: importSettings)
+                }
+            } header: {
+                Text(String(localized: "settings.general.backup"))
+            } footer: {
+                Text(String(localized: "settings.general.backupFooter")).foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
+    }
+
+    private func exportSettings() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "FastUtils Settings.json"
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try settings.exportJSON().write(to: url)
+        } catch {
+            showError(error)
+        }
+    }
+
+    private func importSettings() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try settings.importJSON(Data(contentsOf: url))
+        } catch {
+            showError(error)
+            return
+        }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "settings.general.imported")
+        alert.informativeText = String(localized: "settings.general.importedRestart")
+        alert.addButton(withTitle: String(localized: "settings.general.restart"))
+        alert.addButton(withTitle: String(localized: "settings.general.later"))
+        if alert.runModal() == .alertFirstButtonReturn { AppRelauncher.relaunch() }
+    }
+
+    private func showError(_ error: Error) {
+        let alert = NSAlert(error: error)
+        alert.runModal()
+    }
+}
+
+/// Restarts the app (features read settings at launch).
+@MainActor
+enum AppRelauncher {
+    static func relaunch() {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "sleep 0.7; /usr/bin/open \"$0\"", Bundle.main.bundlePath]
+        try? process.run()
+        NSApp.terminate(nil)
     }
 }
 

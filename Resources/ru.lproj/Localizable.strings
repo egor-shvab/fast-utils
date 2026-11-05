@@ -251,3 +251,31 @@
 "translate.key.ok" = "✓ Ключ работает";
 "translate.key.okDeepL" = "✓ Ключ работает. Использовано %@ из %@ символов в этом месяце";
 "translate.key.saveFailed" = "⚠️ Не удалось сохранить ключ в Связку ключей";
+
+/* Stage 9 */
+"ocr.action.captureAndTranslate" = "Распознать и перевести";
+"ocr.action.recognizeImage" = "Распознать текст";
+"ocr.hud.translateOff" = "Перевод выключен — текст скопирован";
+"ocr.settings.codes" = "QR- и штрих-коды";
+"ocr.settings.codes.off" = "Не распознавать";
+"ocr.settings.codes.withText" = "Вместе с текстом";
+"ocr.settings.codes.codeOnly" = "Только код, если найден";
+"ocr.settings.copyWhenTranslating" = "«Распознать и перевести» тоже копирует текст";
+"ocr.settings.showMagnifier" = "Лупа у курсора при выделении";
+"translate.action.translate" = "Перевести";
+"translate.hud.noTextOnImage" = "На картинке в буфере нет текста";
+"translate.hud.enableOCR" = "Чтобы переводить картинки, включите «Распознавание текста»";
+"translate.settings.translateSelection" = "Если выделен текст — переводить его";
+"translate.settings.sourceFooter" = "Что переводится по сочетанию: выделенный текст (если включено и есть разрешение «Универсальный доступ»; буфер обмена при этом не меняется), иначе текст из буфера, иначе текст на картинке из буфера.";
+"clipboard.settings.previewOnSelect" = "Показывать содержимое выбранной записи рядом со списком";
+"clipboard.window.noSelection" = "Выберите запись";
+"clipboard.hud.noResult" = "Ничего не найдено";
+"clipboard.hud.actionFailed" = "Не удалось выполнить действие";
+"settings.general.backup" = "Резервная копия настроек";
+"settings.general.export" = "Экспорт настроек…";
+"settings.general.import" = "Импорт настроек…";
+"settings.general.backupFooter" = "Сохраняет все настройки и сочетания клавиш в JSON-файл. API-ключи не экспортируются — они хранятся в Связке ключей.";
+"settings.general.imported" = "Настройки импортированы";
+"settings.general.importedRestart" = "Чтобы они вступили в силу, FastUtils нужно перезапустить.";
+"settings.general.restart" = "Перезапустить";
+"settings.general.later" = "Позже";

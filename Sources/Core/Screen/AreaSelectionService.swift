@@ -23,11 +23,13 @@ public final class AreaSelectionService {
     public var isSelecting: Bool { session != nil }
 
     /// Returns `nil` when the user cancels (Esc / right click) or a selection is already running.
-    public func selectArea() async throws -> AreaSelection? {
+    /// Dragging selects a rectangle; a click selects the window under the pointer.
+    public func selectArea(showMagnifier: Bool = true) async throws -> AreaSelection? {
         guard session == nil else { return nil }
         let snapshots = try await capture.captureAllScreens()
+        let windows = Self.visibleWindowFrames()
         return await withCheckedContinuation { continuation in
-            let session = SelectionSession(snapshots: snapshots) { [weak self] result in
+            let session = SelectionSession(snapshots: snapshots, windows: windows, showMagnifier: showMagnifier) { [weak self] result in
                 self?.session = nil
                 continuation.resume(returning: result)
             }
@@ -37,23 +39,53 @@ public final class AreaSelectionService {
     }
 }
 
+extension AreaSelectionService {
+    /// Frames of other apps' normal windows, front to back, in AppKit global coordinates.
+    static func visibleWindowFrames() -> [CGRect] {
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]],
+            let primaryHeight = NSScreen.screens.first?.frame.height
+        else { return [] }
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        return list.compactMap { info in
+            guard (info[kCGWindowLayer as String] as? Int) == 0,
+                  (info[kCGWindowOwnerPID as String] as? Int32) != ownPID,
+                  (info[kCGWindowAlpha as String] as? Double ?? 1) > 0,
+                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                  let rect = CGRect(dictionaryRepresentation: bounds),
+                  rect.width > 40, rect.height > 40
+            else { return nil }
+            return flipToAppKit(rect, primaryHeight: primaryHeight)
+        }
+    }
+
+    /// Window Server rects have a top-left origin at the primary screen's top edge.
+    static func flipToAppKit(_ rect: CGRect, primaryHeight: CGFloat) -> CGRect {
+        CGRect(x: rect.minX, y: primaryHeight - rect.maxY, width: rect.width, height: rect.height)
+    }
+}
+
 /// One selection run: an overlay window per screen.
 @MainActor
 private final class SelectionSession {
     private let snapshots: [ScreenSnapshot]
+    private let windowFrames: [CGRect]
+    private let showMagnifier: Bool
     private let completion: (AreaSelection?) -> Void
     private var windows: [OverlayWindow] = []
     private var finished = false
 
-    init(snapshots: [ScreenSnapshot], completion: @escaping (AreaSelection?) -> Void) {
+    init(snapshots: [ScreenSnapshot], windows: [CGRect], showMagnifier: Bool, completion: @escaping (AreaSelection?) -> Void) {
         self.snapshots = snapshots
+        self.windowFrames = windows
+        self.showMagnifier = showMagnifier
         self.completion = completion
     }
 
     func begin() {
         for snapshot in snapshots {
             let window = OverlayWindow(snapshot: snapshot)
-            let view = OverlayView(snapshot: snapshot)
+            let view = OverlayView(snapshot: snapshot, windowFrames: windowFrames, showMagnifier: showMagnifier)
             view.onFinish = { [weak self] rect in self?.finish(snapshot: snapshot, rect: rect) }
             view.onCancel = { [weak self] in self?.finish(snapshot: nil, rect: nil) }
             window.contentView = view
@@ -102,13 +134,22 @@ private final class OverlayView: NSView {
     var onCancel: (() -> Void)?
 
     private let snapshot: ScreenSnapshot
+    /// Other apps' windows (global coordinates), for click-to-select-window.
+    private let windowFrames: [CGRect]
+    private let showMagnifier: Bool
     private var anchor: CGPoint?
     private var current: CGPoint?
     private var movingWithSpace = false
     private var lastDragPoint: CGPoint?
+    /// Pointer position in view coordinates (for the magnifier and window highlight).
+    private var pointer: CGPoint?
+    /// The window under the pointer while not dragging, in view coordinates.
+    private var hoveredWindow: CGRect?
 
-    init(snapshot: ScreenSnapshot) {
+    init(snapshot: ScreenSnapshot, windowFrames: [CGRect], showMagnifier: Bool) {
         self.snapshot = snapshot
+        self.windowFrames = windowFrames
+        self.showMagnifier = showMagnifier
         super.init(frame: CGRect(origin: .zero, size: snapshot.frame.size))
     }
 
@@ -131,7 +172,21 @@ private final class OverlayView: NSView {
         NSCursor.crosshair.set()
     }
 
-    override func mouseMoved(with event: NSEvent) { NSCursor.crosshair.set() }
+    override func mouseMoved(with event: NSEvent) {
+        NSCursor.crosshair.set()
+        let point = convert(event.locationInWindow, from: nil)
+        pointer = point
+        let global = CGPoint(x: point.x + snapshot.frame.minX, y: point.y + snapshot.frame.minY)
+        hoveredWindow = windowFrames.first { $0.contains(global) }
+            .map { $0.intersection(snapshot.frame).offsetBy(dx: -snapshot.frame.minX, dy: -snapshot.frame.minY) }
+        needsDisplay = true
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        pointer = nil
+        hoveredWindow = nil
+        needsDisplay = true
+    }
 
     private var selection: CGRect? {
         guard let anchor, let current else { return nil }
@@ -156,12 +211,17 @@ private final class OverlayView: NSView {
         }
         current = point
         lastDragPoint = point
+        pointer = point
         needsDisplay = true
     }
 
     override func mouseUp(with event: NSEvent) {
         guard let selection, selection.width >= 4, selection.height >= 4 else {
-            // A click without dragging: keep waiting for a real selection.
+            // A click without dragging selects the window under the pointer.
+            if let hoveredWindow, !hoveredWindow.isEmpty {
+                onFinish?(hoveredWindow.offsetBy(dx: snapshot.frame.minX, dy: snapshot.frame.minY))
+                return
+            }
             anchor = nil
             current = nil
             needsDisplay = true
@@ -193,19 +253,62 @@ private final class OverlayView: NSView {
         context.interpolationQuality = .high
         context.draw(snapshot.image, in: bounds)
 
-        // Dim everything except the selection.
+        // Dim everything except the selection (or the window under the pointer).
+        let highlight = selection ?? (anchor == nil ? hoveredWindow : nil)
         let dim = NSBezierPath(rect: bounds)
-        if let selection { dim.append(NSBezierPath(rect: selection)) }
+        if let highlight { dim.append(NSBezierPath(rect: highlight)) }
         dim.windingRule = .evenOdd
         NSColor.black.withAlphaComponent(0.35).setFill()
         dim.fill()
 
-        guard let selection else { return }
-        NSColor.white.setStroke()
-        let border = NSBezierPath(rect: selection.insetBy(dx: 0.5, dy: 0.5))
-        border.lineWidth = 1
+        if let selection {
+            NSColor.white.setStroke()
+            let border = NSBezierPath(rect: selection.insetBy(dx: 0.5, dy: 0.5))
+            border.lineWidth = 1
+            border.stroke()
+            drawSizeLabel(for: selection)
+        } else if let highlight {
+            NSColor.controlAccentColor.setStroke()
+            let border = NSBezierPath(rect: highlight.insetBy(dx: 1, dy: 1))
+            border.lineWidth = 2
+            border.stroke()
+        }
+        if showMagnifier, let pointer { drawMagnifier(at: pointer, in: context) }
+    }
+
+    /// A zoomed view of the pixels around the pointer for precise selection.
+    private func drawMagnifier(at point: CGPoint, in context: CGContext) {
+        let side: CGFloat = 120
+        let sourceSide: CGFloat = 15  // points around the pointer → 8× zoom
+        var origin = CGPoint(x: point.x + 24, y: point.y - 24 - side)
+        if origin.x + side > bounds.width { origin.x = point.x - 24 - side }
+        if origin.y < 0 { origin.y = point.y + 24 }
+        let box = CGRect(origin: origin, size: CGSize(width: side, height: side))
+
+        let source = CGRect(x: point.x - sourceSide / 2, y: point.y - sourceSide / 2, width: sourceSide, height: sourceSide)
+            .offsetBy(dx: snapshot.frame.minX, dy: snapshot.frame.minY)
+        guard let crop = snapshot.crop(source) else { return }
+
+        context.saveGState()
+        let clip = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
+        clip.addClip()
+        context.interpolationQuality = .none
+        context.draw(crop, in: box)
+        // Crosshair on the center pixel.
+        NSColor.controlAccentColor.withAlphaComponent(0.8).setStroke()
+        let cross = NSBezierPath()
+        cross.move(to: CGPoint(x: box.midX, y: box.minY))
+        cross.line(to: CGPoint(x: box.midX, y: box.maxY))
+        cross.move(to: CGPoint(x: box.minX, y: box.midY))
+        cross.line(to: CGPoint(x: box.maxX, y: box.midY))
+        cross.lineWidth = 1
+        cross.stroke()
+        context.restoreGState()
+
+        NSColor.white.withAlphaComponent(0.9).setStroke()
+        let border = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
+        border.lineWidth = 2
         border.stroke()
-        drawSizeLabel(for: selection)
     }
 
     private func drawSizeLabel(for selection: CGRect) {

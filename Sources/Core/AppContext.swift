@@ -81,6 +81,7 @@ public final class AppContext {
         )
         context.paste.focusDelay = .zero
         context.paste.restoreDelay = .zero
+        context.paste.selectionTimeout = .milliseconds(60)
         return context
     }
 }

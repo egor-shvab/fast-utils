@@ -10,6 +10,8 @@ final class TranslateSettings {
     /// …unless the text already is in it.
     var fallbackLanguage: String { didSet { store.set(fallbackLanguage, for: "fallbackLanguage") } }
     var autoCopy: Bool { didSet { store.set(autoCopy, for: "autoCopy") } }
+    /// Translate the selected text when there is one (copies it with ⌘C, then restores the clipboard).
+    var translateSelection: Bool { didSet { store.set(translateSelection, for: "translateSelection") } }
     var engine: EngineKind { didSet { store.set(engine.rawValue, for: "engine") } }
     /// Use Apple when the online engine fails (no network, bad key, quota).
     var fallbackToApple: Bool { didSet { store.set(fallbackToApple, for: "fallbackToApple") } }
@@ -29,6 +31,7 @@ final class TranslateSettings {
         primaryLanguage = store.value("primaryLanguage", default: "ru")
         fallbackLanguage = store.value("fallbackLanguage", default: "en")
         autoCopy = store.value("autoCopy", default: false)
+        translateSelection = store.value("translateSelection", default: false)
         engine = EngineKind(rawValue: store.value("engine", default: "")) ?? .apple
         fallbackToApple = store.value("fallbackToApple", default: true)
     }

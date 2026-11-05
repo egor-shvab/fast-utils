@@ -34,6 +34,18 @@ public final class OCRFeature: Feature {
                 guard let self else { return .none }
                 return await captureText()
             },
+            FeatureAction(id: "ocr.captureAndTranslate", title: String(localized: "ocr.action.captureAndTranslate")) { [weak self] _ in
+                guard let self else { return .none }
+                return await captureAndTranslate()
+            },
+            // For other features: text from an image (clipboard image translation, history menu).
+            FeatureAction(
+                id: "ocr.recognizeImage", title: String(localized: "ocr.action.recognizeImage"), isInternal: true,
+                accepts: [.image], contentTitle: String(localized: "ocr.action.recognizeImage")
+            ) { [weak self] input in
+                guard let self, case .image(let image) = input else { return .none }
+                return .text(try await recognize(image))
+            },
         ]
     }
 
@@ -43,32 +55,64 @@ public final class OCRFeature: Feature {
 
     /// Select → recognize → copy (or show the result window). Output: the text, for chains.
     func captureText() async -> ActionOutput {
-        guard !isRunning else { return .none }
+        guard let text = await selectAndRecognize() else { return .none }
+        if settings.showResultWindow {
+            showResultWindow(text)
+        } else {
+            copy(text)
+        }
+        return .text(text)
+    }
+
+    /// TZ.md §5.6: select → recognize → show the translation window right away.
+    func captureAndTranslate() async -> ActionOutput {
+        guard let text = await selectAndRecognize() else { return .none }
+        if settings.copyWhenTranslating { context.pasteboard.writeText(text) }
+        do {
+            try await context.actions.perform("translate.show", input: .text(text))
+        } catch {
+            // Translation is turned off: at least keep the text.
+            copy(text)
+            context.hud.show(String(localized: "ocr.hud.translateOff"), style: .info)
+        }
+        return .text(text)
+    }
+
+    /// Text (and code contents) of an image; empty when nothing is found.
+    func recognize(_ image: CGImage) async throws -> String {
+        async let codes = settings.codeMode == .off ? [] : CodeDetector.payloads(in: image)
+        let lines = try await recognizer.recognize(image, languages: settings.languages, autoDetect: settings.autoDetectLanguage)
+        let text = TextLayout.format(lines, mode: settings.lineMode)
+        return CodeDetector.combine(codes: await codes, text: text, mode: settings.codeMode)
+    }
+
+    /// The shared part: area selection, recognition, HUD for errors / nothing found.
+    private func selectAndRecognize() async -> String? {
+        guard !isRunning else { return nil }
         isRunning = true
         defer { isRunning = false }
 
         let selection: AreaSelection
         do {
-            guard let selected = try await context.areaSelection.selectArea() else { return .none }
+            guard let selected = try await context.areaSelection.selectArea(showMagnifier: settings.showMagnifier) else {
+                return nil
+            }
             selection = selected
         } catch {
             log.error("Screen capture failed: \(String(describing: error), privacy: .public)")
             context.permissions.request(.screenRecording)
             context.hud.show(String(localized: "ocr.hud.noPermission"), style: .error)
-            return .none
+            return nil
         }
 
         let started = ContinuousClock.now
         let text: String
         do {
-            let lines = try await recognizer.recognize(
-                selection.image, languages: settings.languages, autoDetect: settings.autoDetectLanguage
-            )
-            text = TextLayout.format(lines, mode: settings.lineMode)
+            text = try await recognize(selection.image)
         } catch {
             log.error("Recognition failed: \(String(describing: error), privacy: .public)")
             context.hud.show(String(localized: "ocr.hud.failed"), style: .error)
-            return .none
+            return nil
         }
         let elapsed = ContinuousClock.now - started
         // Only sizes and timing are logged, never the text.
@@ -76,15 +120,9 @@ public final class OCRFeature: Feature {
 
         guard !text.isEmpty else {
             context.hud.show(String(localized: "ocr.hud.notFound"), icon: "text.magnifyingglass", style: .info)
-            return .none
+            return nil
         }
-
-        if settings.showResultWindow {
-            showResultWindow(text)
-        } else {
-            copy(text)
-        }
-        return .text(text)
+        return text
     }
 
     private func copy(_ text: String) {

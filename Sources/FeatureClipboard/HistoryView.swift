@@ -8,6 +8,23 @@ struct HistoryView: View {
     @FocusState private var searchFocused: Bool
 
     var body: some View {
+        HStack(spacing: 0) {
+            main.frame(width: 440)
+            if model.previewOnSelect {
+                Divider()
+                Group {
+                    if let item = model.sidePreview {
+                        PreviewContent(item: item)
+                    } else {
+                        Text(String(localized: "clipboard.window.noSelection")).foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+
+    private var main: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
@@ -114,6 +131,13 @@ struct HistoryView: View {
         if item.kind == .link, let url = item.text.flatMap(URL.init(string:)) {
             Button(String(localized: "clipboard.menu.openLink")) { NSWorkspace.shared.open(url) }
         }
+        let extras = model.contentActions?(item) ?? []
+        if !extras.isEmpty {
+            Divider()
+            ForEach(extras, id: \.id) { action in
+                Button(action.contentTitle ?? action.title) { model.onRunAction?(item, action) }
+            }
+        }
         Divider()
         Button(String(localized: "clipboard.menu.delete"), role: .destructive) {
             Task { await model.delete(item) }
@@ -160,9 +184,17 @@ struct ClipContentView: View {
     var body: some View {
         switch item.kind {
         case .text:
-            Text(item.text.map { String($0.prefix(400)) } ?? "")
-                .lineLimit(3)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 8) {
+                if let color = item.text.flatMap(ColorParser.parse) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color.color)
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(.secondary.opacity(0.5)))
+                        .frame(width: 22, height: 22)
+                }
+                Text(item.text.map { String($0.prefix(400)) } ?? "")
+                    .lineLimit(3)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .link:
             Label(item.text ?? "", systemImage: "link")
                 .lineLimit(1)
@@ -248,43 +280,57 @@ struct PreviewOverlay: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Group {
-                switch item.kind {
-                case .text, .link:
-                    ScrollView {
-                        Text(item.text ?? "")
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(14)
-                    }
-                case .image:
-                    if let url = item.imageURL, let image = NSImage(contentsOf: url) {
-                        Image(nsImage: image).resizable().aspectRatio(contentMode: .fit).padding(14)
-                    }
-                case .files:
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(item.fileURLs, id: \.self) { url in
-                                HStack {
-                                    Image(nsImage: IconCache.icon(forFile: url)).resizable().frame(width: 32, height: 32)
-                                    VStack(alignment: .leading) {
-                                        Text(url.lastPathComponent)
-                                        Text(url.path(percentEncoded: false)).font(.caption).foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            PreviewContent(item: item)
             Divider()
             Text(String(localized: "clipboard.window.previewHint"))
                 .font(.caption).foregroundStyle(.tertiary).padding(.vertical, 6)
         }
         .background(.regularMaterial)
+    }
+}
+
+/// The full text, image or file list of an item.
+struct PreviewContent: View {
+    let item: ClipItem
+
+    var body: some View {
+        Group {
+            switch item.kind {
+            case .text, .link:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let color = item.text.flatMap(ColorParser.parse) {
+                            RoundedRectangle(cornerRadius: 8).fill(color.color).frame(height: 80)
+                        }
+                        Text(item.text ?? "")
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(14)
+                }
+            case .image:
+                if let url = item.imageURL, let image = NSImage(contentsOf: url) {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fit).padding(14)
+                }
+            case .files:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(item.fileURLs, id: \.self) { url in
+                            HStack {
+                                Image(nsImage: IconCache.icon(forFile: url)).resizable().frame(width: 32, height: 32)
+                                VStack(alignment: .leading) {
+                                    Text(url.lastPathComponent)
+                                    Text(url.path(percentEncoded: false)).font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import OSLog
 
 /// What was on the clipboard at one moment. Only the representations FastUtils uses are read.
@@ -97,8 +98,21 @@ public final class PasteboardService {
         noteOwnWrite(recordInHistory: recordInHistory)
     }
 
+    public func clear() {
+        pasteboard.clearContents()
+        noteOwnWrite(recordInHistory: false)
+    }
+
     public func readText() -> String? {
         pasteboard.string(forType: .string)
+    }
+
+    /// An image on the clipboard (screenshot, copied picture), if any.
+    public func readImage() -> CGImage? {
+        guard let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff),
+              let source = CGImageSourceCreateWithData(data as CFData, nil)
+        else { return nil }
+        return CGImageSourceCreateImageAtIndex(source, 0, nil)
     }
 
     private func noteOwnWrite(recordInHistory: Bool) {
@@ -148,8 +162,21 @@ public final class PasteboardService {
         timer = nil
     }
 
+    /// While suspended the monitor does not look at the clipboard; on resume the changes made
+    /// meanwhile are skipped. Used when FastUtils itself drives the clipboard briefly
+    /// (copying the selection for translation, then restoring).
+    public private(set) var isSuspended = false
+
+    public func suspendMonitoring() { isSuspended = true }
+
+    public func resumeMonitoring() {
+        isSuspended = false
+        lastSeenChangeCount = pasteboard.changeCount
+    }
+
     /// One polling tick; public for tests.
     public func checkForChanges() {
+        guard !isSuspended else { return }
         let current = pasteboard.changeCount
         guard current != lastSeenChangeCount else { return }
         lastSeenChangeCount = current

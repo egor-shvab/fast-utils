@@ -66,7 +66,12 @@ final class HistoryViewModel: ObservableObject {
     @Published var query = "" { didSet { if query != oldValue { scheduleReload() } } }
     @Published var filter: HistoryFilter = .all { didSet { if filter != oldValue { scheduleReload() } } }
     @Published private(set) var items: [ClipItem] = []
-    @Published var selectedID: Int64?
+    @Published var selectedID: Int64? {
+        didSet { if selectedID != oldValue, previewOnSelect { loadSidePreview() } }
+    }
+    /// Full content of the selected item, shown beside the list when `previewOnSelect` is on.
+    @Published private(set) var sidePreview: ClipItem?
+    var previewOnSelect = false
     /// The item shown in the preview overlay (fully loaded).
     @Published private(set) var preview: ClipItem?
     @Published private(set) var hasLoaded = false
@@ -74,9 +79,13 @@ final class HistoryViewModel: ObservableObject {
     private let store: HistoryStore
     private let limit: Int
     private var reloadTask: Task<Void, Never>?
+    private var sidePreviewTask: Task<Void, Never>?
 
     /// Actions the window asks for; the feature performs them.
     var onPaste: ((ClipItem, _ plainText: Bool) -> Void)?
+    /// Other features' actions for an item ("Translate", "Recognize Text").
+    var contentActions: ((ClipItem) -> [FeatureAction])?
+    var onRunAction: ((ClipItem, FeatureAction) -> Void)?
     var onCopy: ((ClipItem) -> Void)?
     var onClose: (() -> Void)?
 
@@ -166,6 +175,16 @@ final class HistoryViewModel: ObservableObject {
             preview = nil
         } else if let selected {
             Task { await showPreview(selected) }
+        }
+    }
+
+    private func loadSidePreview() {
+        sidePreviewTask?.cancel()
+        guard let selected else { sidePreview = nil; return }
+        sidePreviewTask = Task {
+            let full = (try? await store.item(selected.id)) ?? selected
+            guard !Task.isCancelled else { return }
+            sidePreview = full
         }
     }
 

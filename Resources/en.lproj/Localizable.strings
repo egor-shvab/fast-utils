@@ -251,3 +251,31 @@
 "translate.key.ok" = "✓ The key works";
 "translate.key.okDeepL" = "✓ The key works. %@ of %@ characters used this month";
 "translate.key.saveFailed" = "⚠️ Couldn’t save the key to the Keychain";
+
+/* Stage 9 */
+"ocr.action.captureAndTranslate" = "Recognize and Translate";
+"ocr.action.recognizeImage" = "Recognize Text";
+"ocr.hud.translateOff" = "Translation is off — the text was copied";
+"ocr.settings.codes" = "QR codes and barcodes";
+"ocr.settings.codes.off" = "Don’t detect";
+"ocr.settings.codes.withText" = "Together with text";
+"ocr.settings.codes.codeOnly" = "Only the code, if found";
+"ocr.settings.copyWhenTranslating" = "“Recognize and Translate” also copies the text";
+"ocr.settings.showMagnifier" = "Magnifier at the pointer while selecting";
+"translate.action.translate" = "Translate";
+"translate.hud.noTextOnImage" = "No text on the clipboard image";
+"translate.hud.enableOCR" = "Turn on Text Recognition to translate images";
+"translate.settings.translateSelection" = "Translate the selected text when there is one";
+"translate.settings.sourceFooter" = "What the shortcut translates: the selected text (if enabled and Accessibility is allowed; the clipboard stays unchanged), otherwise the clipboard text, otherwise text on a clipboard image.";
+"clipboard.settings.previewOnSelect" = "Show the selected item’s content next to the list";
+"clipboard.window.noSelection" = "Select an item";
+"clipboard.hud.noResult" = "Nothing found";
+"clipboard.hud.actionFailed" = "Couldn’t complete the action";
+"settings.general.backup" = "Settings Backup";
+"settings.general.export" = "Export Settings…";
+"settings.general.import" = "Import Settings…";
+"settings.general.backupFooter" = "Saves all settings and shortcuts to a JSON file. API keys are not exported — they stay in the Keychain.";
+"settings.general.imported" = "Settings imported";
+"settings.general.importedRestart" = "FastUtils needs to restart for them to take effect.";
+"settings.general.restart" = "Restart";
+"settings.general.later" = "Later";

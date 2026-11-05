@@ -57,3 +57,21 @@ struct TextRecognizer {
         return context.makeImage() ?? image
     }
 }
+
+/// QR codes and barcodes (Vision `DetectBarcodesRequest`).
+enum CodeDetector {
+    static func payloads(in image: CGImage) async -> [String] {
+        let request = DetectBarcodesRequest()
+        guard let observations = try? await request.perform(on: image) else { return [] }
+        var seen = Set<String>()
+        return observations.compactMap(\.payloadString).filter { seen.insert($0).inserted }
+    }
+
+    /// Joins code contents and text according to the setting.
+    static func combine(codes: [String], text: String, mode: OCRSettings.CodeMode) -> String {
+        guard mode != .off, !codes.isEmpty else { return text }
+        let codeText = codes.joined(separator: "\n")
+        if mode == .codeOnly || text.isEmpty { return codeText }
+        return codeText + "\n\n" + text
+    }
+}
