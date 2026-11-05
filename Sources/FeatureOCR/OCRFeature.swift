@@ -3,13 +3,15 @@ import Core
 import OSLog
 import SwiftUI
 
-/// Stub until its stage in ROADMAP.md: one action that shows a "coming soon" alert.
+/// Stub until its stage in ROADMAP.md: one action that shows a placeholder HUD or panel.
 public final class OCRFeature: Feature {
     public static let id: FeatureID = "ocr"
 
+    private let context: AppContext
     private let log: Logger
 
     public init(context: AppContext) {
+        self.context = context
         log = context.logger(Self.id.rawValue)
     }
 
@@ -26,7 +28,7 @@ public final class OCRFeature: Feature {
             ) { [weak self] _ in
                 guard let self else { return .none }
                 log.notice("Stub action ocr.captureText")
-                StubAlert.show(feature: title)
+                context.hud.show(String(localized: "stub.ocr.hud"), icon: "text.viewfinder", style: .info)
                 return .none
             },
         ]

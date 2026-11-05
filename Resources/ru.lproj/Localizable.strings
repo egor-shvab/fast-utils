@@ -23,7 +23,6 @@
 "settings.tab.about" = "О программе";
 "settings.general.features" = "Функции";
 "settings.general.featuresFooter" = "Выключенная функция не работает, не реагирует на сочетания клавиш и не потребляет ресурсы.";
-"settings.placeholder.permissions" = "Управление разрешениями появится на этапе 3.";
 "settings.about.version" = "Версия %@";
 "settings.about.openData" = "Открыть папку с данными";
 
@@ -36,8 +35,6 @@
 "clipboard.action.showHistory" = "История буфера обмена";
 
 /* Stubs (temporary) */
-"stub.title" = "Скоро будет";
-"stub.message" = "Функция «%@» ещё в разработке.";
 "stub.settings" = "Настройки этой функции появятся на следующих этапах.";
 
 /* Shortcuts */
@@ -75,3 +72,46 @@
 "shortcut.known.hide" = "скрыть приложение";
 "shortcut.known.minimize" = "свернуть окно";
 "shortcut.known.preferences" = "настройки приложения";
+
+/* Permissions */
+"permission.screenRecording.title" = "Запись экрана";
+"permission.screenRecording.explanation" = "Нужна, чтобы сделать снимок выделенной области и распознать на нём текст.";
+"permission.accessibility.title" = "Универсальный доступ";
+"permission.accessibility.explanation" = "Нужен, чтобы вставлять выбранное из истории (нажимать ⌘V за вас) и копировать выделенный текст для перевода.";
+"permission.pasteboard.title" = "Вставка из других приложений";
+"permission.pasteboard.explanation" = "Нужна, чтобы читать буфер обмена без системного запроса каждый раз. После запроса выберите «Всегда разрешать» в Системных настройках.";
+"permission.status.granted" = "Разрешено";
+"permission.action.grant" = "Разрешить…";
+"permission.action.openSettings" = "Открыть настройки…";
+"permission.none" = "Включённым функциям разрешения не нужны.";
+"permission.footer" = "Показаны разрешения, нужные включённым функциям. Статус обновляется автоматически после изменения в Системных настройках.";
+
+/* Onboarding */
+"onboarding.window.title" = "Добро пожаловать";
+"onboarding.title" = "FastUtils";
+"onboarding.subtitle" = "Живёт в строке меню и работает по сочетаниям клавиш.";
+"onboarding.shortcuts" = "Сочетания клавиш";
+"onboarding.shortcutsHint" = "Их можно изменить в Настройках → Сочетания клавиш.";
+"onboarding.permissions" = "Разрешения";
+"onboarding.done" = "Готово";
+
+/* General settings additions */
+"settings.general.launchAtLogin" = "Запускать при входе в систему";
+"settings.general.notifications" = "Уведомления";
+"settings.general.hud" = "Показывать всплывающие уведомления";
+"settings.general.hudPosition" = "Где показывать";
+"settings.general.hudPosition.bottomCenter" = "Внизу по центру экрана";
+"settings.general.hudPosition.nearCursor" = "Рядом с курсором";
+"settings.general.hudTest" = "Показать пример";
+"settings.general.hudTestMessage" = "Так выглядит уведомление";
+
+/* Panels */
+"panel.pin" = "Закрепить: не закрывать при клике мимо";
+"panel.hint" = "Esc — закрыть";
+
+/* Stubs (temporary) */
+"stub.ocr.hud" = "Распознавание текста появится на этапе 4";
+"stub.translate.text" = "Здесь будет перевод текста из буфера обмена (этап 7).";
+"stub.clipboard.text" = "Здесь будет история буфера обмена (этап 6). Попробуйте ввести текст в поиск — окно принимает ввод, не забирая фокус у текущего приложения.";
+"stub.search" = "Поиск";
+"stub.typed" = "Вы ввели: %@";

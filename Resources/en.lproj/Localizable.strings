@@ -23,7 +23,6 @@
 "settings.tab.about" = "About";
 "settings.general.features" = "Features";
 "settings.general.featuresFooter" = "A turned-off feature does not run, ignores its shortcuts and uses no resources.";
-"settings.placeholder.permissions" = "Permission management arrives in stage 3.";
 "settings.about.version" = "Version %@";
 "settings.about.openData" = "Open Data Folder";
 
@@ -36,8 +35,6 @@
 "clipboard.action.showHistory" = "Clipboard History";
 
 /* Stubs (temporary) */
-"stub.title" = "Coming Soon";
-"stub.message" = "“%@” is still in development.";
 "stub.settings" = "Settings for this feature arrive in later stages.";
 
 /* Shortcuts */
@@ -75,3 +72,46 @@
 "shortcut.known.hide" = "hide app";
 "shortcut.known.minimize" = "minimize window";
 "shortcut.known.preferences" = "app settings";
+
+/* Permissions */
+"permission.screenRecording.title" = "Screen Recording";
+"permission.screenRecording.explanation" = "Needed to capture the selected area and recognize text in it.";
+"permission.accessibility.title" = "Accessibility";
+"permission.accessibility.explanation" = "Needed to paste items from history (pressing ⌘V for you) and to copy selected text for translation.";
+"permission.pasteboard.title" = "Paste from Other Apps";
+"permission.pasteboard.explanation" = "Needed to read the clipboard without a system prompt every time. After the prompt, choose “Always Allow” in System Settings.";
+"permission.status.granted" = "Allowed";
+"permission.action.grant" = "Allow…";
+"permission.action.openSettings" = "Open Settings…";
+"permission.none" = "Enabled features need no permissions.";
+"permission.footer" = "Permissions needed by enabled features. The status updates automatically after you change it in System Settings.";
+
+/* Onboarding */
+"onboarding.window.title" = "Welcome";
+"onboarding.title" = "FastUtils";
+"onboarding.subtitle" = "Lives in the menu bar and works with keyboard shortcuts.";
+"onboarding.shortcuts" = "Keyboard Shortcuts";
+"onboarding.shortcutsHint" = "Change them in Settings → Shortcuts.";
+"onboarding.permissions" = "Permissions";
+"onboarding.done" = "Done";
+
+/* General settings additions */
+"settings.general.launchAtLogin" = "Open at login";
+"settings.general.notifications" = "Notifications";
+"settings.general.hud" = "Show pop-up notifications";
+"settings.general.hudPosition" = "Position";
+"settings.general.hudPosition.bottomCenter" = "Bottom center of the screen";
+"settings.general.hudPosition.nearCursor" = "Near the pointer";
+"settings.general.hudTest" = "Show Example";
+"settings.general.hudTestMessage" = "This is what a notification looks like";
+
+/* Panels */
+"panel.pin" = "Pin: keep open when clicking elsewhere";
+"panel.hint" = "Esc to close";
+
+/* Stubs (temporary) */
+"stub.ocr.hud" = "Text recognition arrives in stage 4";
+"stub.translate.text" = "The clipboard translation will appear here (stage 7).";
+"stub.clipboard.text" = "Clipboard history will appear here (stage 6). Try typing in the search field — the panel takes input without stealing focus from the current app.";
+"stub.search" = "Search";
+"stub.typed" = "You typed: %@";

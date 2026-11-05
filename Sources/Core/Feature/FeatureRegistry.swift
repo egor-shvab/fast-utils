@@ -34,6 +34,14 @@ public final class FeatureRegistry {
 
     public func isEnabled(_ id: FeatureID) -> Bool { enabledIDs.contains(id) }
 
+    /// Permissions needed by enabled features, in a stable order.
+    public var requiredPermissions: [Permission] {
+        let needed = features
+            .filter { isEnabled(Self.id(of: $0)) }
+            .reduce(into: Set<Permission>()) { $0.formUnion($1.requiredPermissions) }
+        return Permission.allCases.filter(needed.contains)
+    }
+
     /// Persisted preference; features are on by default.
     func isEnabledInSettings(_ id: FeatureID) -> Bool {
         state.value("\(id).enabled", default: true)

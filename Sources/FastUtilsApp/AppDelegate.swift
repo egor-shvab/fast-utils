@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let context = AppContext()
     private lazy var registry = FeatureRegistry(context: context, types: featureTypes)
     private lazy var settingsWindow = SettingsWindowController(registry: registry, context: context)
+    private lazy var onboarding = OnboardingWindowController(registry: registry, context: context)
     private var menuBar: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -16,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             await registry.startEnabledFeatures()
             context.logger("app").notice("Started, version \(AppInfo.version, privacy: .public)")
+            onboarding.showIfNeeded()
         }
     }
 

@@ -8,7 +8,7 @@ struct SettingsView: View {
 
     var body: some View {
         TabView(selection: $navigation.selectedTab) {
-            GeneralSettingsView(registry: registry)
+            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud)
                 .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
 
@@ -22,7 +22,7 @@ struct SettingsView: View {
                     .tag(SettingsTab.feature(tab.id))
             }
 
-            PlaceholderPane(text: String(localized: "settings.placeholder.permissions"))
+            PermissionsSettingsView(registry: registry, service: context.permissions)
                 .tabItem { Label(String(localized: "settings.tab.permissions"), systemImage: "lock.shield") }
                 .tag(SettingsTab.permissions)
 
@@ -30,7 +30,7 @@ struct SettingsView: View {
                 .tabItem { Label(String(localized: "settings.tab.about"), systemImage: "info.circle") }
                 .tag(SettingsTab.about)
         }
-        .frame(width: 600, height: 420)
+        .frame(width: 620, height: 480)
     }
 
     /// Tabs of enabled features that provide a settings view.
@@ -52,9 +52,31 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     let registry: FeatureRegistry
+    let launchAtLogin: LaunchAtLogin
+    @Bindable var hud: HUDService
 
     var body: some View {
         Form {
+            Section {
+                Toggle(String(localized: "settings.general.launchAtLogin"), isOn: Binding(
+                    get: { launchAtLogin.isEnabled },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+            }
+            Section {
+                Toggle(String(localized: "settings.general.hud"), isOn: $hud.isEnabled)
+                Picker(String(localized: "settings.general.hudPosition"), selection: $hud.position) {
+                    Text(String(localized: "settings.general.hudPosition.bottomCenter")).tag(HUDService.Position.bottomCenter)
+                    Text(String(localized: "settings.general.hudPosition.nearCursor")).tag(HUDService.Position.nearCursor)
+                }
+                .disabled(!hud.isEnabled)
+                Button(String(localized: "settings.general.hudTest")) {
+                    hud.show(String(localized: "settings.general.hudTestMessage"))
+                }
+                .disabled(!hud.isEnabled)
+            } header: {
+                Text(String(localized: "settings.general.notifications"))
+            }
             Section {
                 ForEach(registry.features.map { FeatureRegistry.id(of: $0) }, id: \.self) { id in
                     let feature = registry.feature(id)!

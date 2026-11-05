@@ -12,6 +12,10 @@ public final class AppContext {
     public let events: EventBus
     public let actions: ActionRegistry
     public let hotkeys: HotkeyService
+    public let permissions: PermissionsService
+    public let hud: HUDService
+    public let panels: PanelService
+    public let launchAtLogin: LaunchAtLogin
 
     public init(
         settings: SettingsStore = SettingsStore(),
@@ -19,7 +23,8 @@ public final class AppContext {
         storage: StorageService = StorageService(),
         events: EventBus = EventBus(),
         actions: ActionRegistry = ActionRegistry(),
-        hotkeyRegistrar: any HotkeyRegistrar = CarbonHotkeyRegistrar()
+        hotkeyRegistrar: any HotkeyRegistrar = CarbonHotkeyRegistrar(),
+        permissionChecker: any PermissionChecker = SystemPermissionChecker()
     ) {
         self.settings = settings
         self.secrets = secrets
@@ -32,6 +37,10 @@ public final class AppContext {
             registrar: hotkeyRegistrar,
             log: Logger(subsystem: AppInfo.bundleIdentifier, category: "hotkeys")
         )
+        self.permissions = PermissionsService(checker: permissionChecker)
+        self.hud = HUDService(settings: settings.app)
+        self.panels = PanelService()
+        self.launchAtLogin = LaunchAtLogin()
     }
 
     /// Logger for a category, e.g. `context.logger("ocr")`.
@@ -41,8 +50,11 @@ public final class AppContext {
     }
 
     /// Isolated context for tests: throwaway UserDefaults suite, in-memory secrets, temp storage,
-    /// fake hot keys (nothing is registered system-wide).
-    public static func testing(hotkeys: FakeHotkeyRegistrar = FakeHotkeyRegistrar()) -> AppContext {
+    /// fake hot keys and permissions (nothing touches the system).
+    public static func testing(
+        hotkeys: FakeHotkeyRegistrar = FakeHotkeyRegistrar(),
+        permissions: FakePermissionChecker = FakePermissionChecker()
+    ) -> AppContext {
         let suite = "FastUtilsTests.\(UUID().uuidString)"
         return AppContext(
             settings: SettingsStore(defaults: UserDefaults(suiteName: suite)!),
@@ -50,7 +62,8 @@ public final class AppContext {
             storage: StorageService(
                 baseURL: FileManager.default.temporaryDirectory.appending(path: suite, directoryHint: .isDirectory)
             ),
-            hotkeyRegistrar: hotkeys
+            hotkeyRegistrar: hotkeys,
+            permissionChecker: permissions
         )
     }
 }
