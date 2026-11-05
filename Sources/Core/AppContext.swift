@@ -18,6 +18,7 @@ public final class AppContext {
     public let panels: PanelService
     public let launchAtLogin: LaunchAtLogin
     public let pasteboard: PasteboardService
+    public let paste: PasteService
     public let areaSelection: AreaSelectionService
     public let statusIndicator = StatusIndicator()
 
@@ -29,7 +30,8 @@ public final class AppContext {
         actions: ActionRegistry = ActionRegistry(),
         hotkeyRegistrar: any HotkeyRegistrar = CarbonHotkeyRegistrar(),
         permissionChecker: any PermissionChecker = SystemPermissionChecker(),
-        pasteboard: NSPasteboard = .general
+        pasteboard: NSPasteboard = .general,
+        keystrokes: any KeystrokeSender = SystemKeystrokeSender()
     ) {
         self.settings = settings
         self.secrets = secrets
@@ -47,6 +49,7 @@ public final class AppContext {
         self.panels = PanelService()
         self.launchAtLogin = LaunchAtLogin()
         self.pasteboard = PasteboardService(pasteboard: pasteboard, events: events)
+        self.paste = PasteService(pasteboard: self.pasteboard, keystrokes: keystrokes)
         self.areaSelection = AreaSelectionService()
     }
 
@@ -61,10 +64,11 @@ public final class AppContext {
     public static func testing(
         hotkeys: FakeHotkeyRegistrar = FakeHotkeyRegistrar(),
         permissions: FakePermissionChecker = FakePermissionChecker(),
-        pasteboard: NSPasteboard? = nil
+        pasteboard: NSPasteboard? = nil,
+        keystrokes: FakeKeystrokeSender = FakeKeystrokeSender()
     ) -> AppContext {
         let suite = "FastUtilsTests.\(UUID().uuidString)"
-        return AppContext(
+        let context = AppContext(
             settings: SettingsStore(defaults: UserDefaults(suiteName: suite)!),
             secrets: InMemorySecretStore(),
             storage: StorageService(
@@ -72,7 +76,11 @@ public final class AppContext {
             ),
             hotkeyRegistrar: hotkeys,
             permissionChecker: permissions,
-            pasteboard: pasteboard ?? NSPasteboard(name: NSPasteboard.Name(suite))
+            pasteboard: pasteboard ?? NSPasteboard(name: NSPasteboard.Name(suite)),
+            keystrokes: keystrokes
         )
+        context.paste.focusDelay = .zero
+        context.paste.restoreDelay = .zero
+        return context
     }
 }

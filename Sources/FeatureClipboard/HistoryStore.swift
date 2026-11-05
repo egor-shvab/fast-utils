@@ -88,6 +88,9 @@ actor HistoryStore {
 
     // MARK: Reading
 
+    /// Characters of text loaded for list rows.
+    static let listTextLimit = 2_000
+
     func item(_ id: Int64) throws -> ClipItem? {
         try db.query("SELECT * FROM items WHERE id = ?", [.integer(id)]).first.map(makeItem)
     }
@@ -108,8 +111,12 @@ actor HistoryStore {
         }
         let whereClause = conditions.isEmpty ? "" : "WHERE " + conditions.joined(separator: " AND ")
         parameters.append(.integer(Int64(limit)))
-        return try db.query("SELECT * FROM items \(whereClause) ORDER BY pinned DESC, updated DESC LIMIT ?", parameters)
-            .map(makeItem)
+        // The list needs no RTF/HTML and only the beginning of long texts; `item(_:)` loads everything.
+        return try db.query("""
+            SELECT id, kind, substr(text, 1, \(Self.listTextLimit)) AS text, image_file, thumb_file, image_w, image_h,
+                   files, source_id, source_name, created, updated, pinned, size
+            FROM items \(whereClause) ORDER BY pinned DESC, updated DESC LIMIT ?
+            """, parameters).map(makeItem)
     }
 
     func count() throws -> Int {

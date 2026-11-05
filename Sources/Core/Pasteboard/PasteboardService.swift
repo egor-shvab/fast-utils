@@ -107,7 +107,8 @@ public final class PasteboardService {
 
     // MARK: Reading
 
-    public func readSnapshot() -> PasteboardSnapshot? {
+    /// `bypassingFilter`: read everything (used to restore the clipboard exactly as it was).
+    public func readSnapshot(bypassingFilter: Bool = false) -> PasteboardSnapshot? {
         guard let item = pasteboard.pasteboardItems?.first else { return nil }
         let types = item.types.map(\.rawValue)
         let source = NSWorkspace.shared.frontmostApplication
@@ -115,7 +116,7 @@ public final class PasteboardService {
             changeCount: pasteboard.changeCount, types: types,
             sourceBundleID: source?.bundleIdentifier, sourceName: source?.localizedName
         )
-        if let shouldReadContents, !shouldReadContents(types, snapshot.sourceBundleID) {
+        if !bypassingFilter, let shouldReadContents, !shouldReadContents(types, snapshot.sourceBundleID) {
             return snapshot
         }
         snapshot.fileURLs = (pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []

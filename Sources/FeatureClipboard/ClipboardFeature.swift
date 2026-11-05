@@ -42,7 +42,7 @@ public final class ClipboardFeature: Feature {
                 title: String(localized: "clipboard.action.showHistory"),
                 defaultShortcut: Shortcut(kVK_ANSI_V, [.option, .command])
             ) { [weak self] _ in
-                await self?.showHistoryStub()
+                await self?.toggleHistory()
                 return .none
             },
             FeatureAction(id: "clipboard.togglePause", title: String(localized: "clipboard.action.togglePause")) { [weak self] _ in
@@ -196,13 +196,107 @@ public final class ClipboardFeature: Feature {
         }
     }
 
-    // MARK: Stage 6 placeholder
+    // MARK: History window
 
-    private func showHistoryStub() async {
-        let count = (try? await store?.count()) ?? 0
-        let text = String(format: String(localized: "stub.clipboard.count"), count)
-        context.panels.toggle(id: "clipboard", size: CGSize(width: 420, height: 260)) { handle in
-            StubPanelView(title: title, text: text, showsSearch: true, handle: handle)
+    static let panelID = "clipboard.history"
+    private var keyMonitor: Any?
+
+    func toggleHistory() async {
+        if context.panels.isPresented(Self.panelID) {
+            context.panels.close(Self.panelID)
+            return
+        }
+        guard let store else { return }
+        let started = ContinuousClock.now
+        // Remember where the user was: the paste goes there.
+        let targetApp = NSWorkspace.shared.frontmostApplication
+        let model = HistoryViewModel(store: store, limit: settings.maxItems)
+        await model.reload()  // so the very first frame already shows the list
+
+        model.onPaste = { [weak self] item, plain in
+            Task { await self?.paste(item, plainText: plain, into: targetApp) }
+        }
+        model.onCopy = { [weak self] item in
+            Task { await self?.copy(item) }
+        }
+        model.onClose = { [weak self] in self?.context.panels.close(Self.panelID) }
+
+        let handle = context.panels.present(
+            id: Self.panelID, size: CGSize(width: 440, height: 540), placement: placement(),
+            onClose: { [weak self] in self?.removeKeyMonitor() }
+        ) { _ in
+            HistoryView(model: model)
+        }
+        installKeyMonitor(for: handle.window, model: model)
+        log.notice("History window opened in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
+    }
+
+    private func placement() -> PanelService.Placement {
+        switch settings.windowPosition {
+        case .mouse: .nearCursor
+        case .center: .center
+        case .textCursor: TextCaret.rect().map { .near(CGPoint(x: $0.minX, y: $0.minY)) } ?? .nearCursor
+        }
+    }
+
+    /// Arrows, Enter, ⌘1…⌘9 and the rest reach the window whatever has focus; plain typing
+    /// goes on to the search field.
+    private func installKeyMonitor(for window: NSWindow?, model: HistoryViewModel) {
+        removeKeyMonitor()
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak window, weak model] event in
+            guard let window, let model, event.window === window else { return event }
+            let command = HistoryCommand.from(
+                keyCode: Int(event.keyCode), modifiers: event.modifierFlags, queryIsEmpty: model.query.isEmpty
+            )
+            return model.handle(command) ? nil : event
+        }
+    }
+
+    private func removeKeyMonitor() {
+        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        keyMonitor = nil
+    }
+
+    func paste(_ item: ClipItem, plainText: Bool, into targetApp: NSRunningApplication?) async {
+        context.panels.close(Self.panelID)
+        guard let snapshot = await snapshot(for: item) else { return }
+        let outcome = await context.paste.paste(
+            snapshot, plainText: plainText, into: targetApp,
+            autoPaste: settings.autoPaste, restorePrevious: settings.restorePrevious
+        )
+        switch outcome {
+        case .pasted: break
+        case .copied(let missingPermission):
+            context.hud.show(String(localized: missingPermission ? "clipboard.hud.copiedNoPermission" : "clipboard.hud.copied"))
+        }
+    }
+
+    func copy(_ item: ClipItem) async {
+        context.panels.close(Self.panelID)
+        guard let snapshot = await snapshot(for: item) else { return }
+        context.pasteboard.write(snapshot)
+        context.hud.show(String(localized: "clipboard.hud.copied"))
+    }
+
+    /// Everything needed to put the item back on the clipboard (full text, formats, image, files).
+    func snapshot(for item: ClipItem) async -> PasteboardSnapshot? {
+        let full = (try? await store?.item(item.id)) ?? item
+        switch full.kind {
+        case .text, .link:
+            return PasteboardSnapshot(string: full.text, rtf: full.rtf, html: full.html)
+        case .image:
+            guard let url = full.imageURL, let data = try? Data(contentsOf: url) else {
+                context.hud.show(String(localized: "clipboard.hud.imageMissing"), style: .error)
+                return nil
+            }
+            return PasteboardSnapshot(image: data)
+        case .files:
+            let existing = full.fileURLs.filter { FileManager.default.fileExists(atPath: $0.path) }
+            guard !existing.isEmpty else {
+                context.hud.show(String(localized: "clipboard.window.fileMissing"), style: .error)
+                return nil
+            }
+            return PasteboardSnapshot(fileURLs: existing)
         }
     }
 }

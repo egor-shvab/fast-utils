@@ -56,13 +56,22 @@ public final class PanelHandle {
     @ObservationIgnored weak var panel: FloatingPanel?
 
     public func close() { panel?.close() }
+
+    /// The panel window (to scope keyboard monitors to it).
+    public var window: NSWindow? { panel }
 }
 
 /// Creates floating panels with uniform behavior. One panel per id: presenting an id that
 /// is already on screen closes it (pressing the hotkey again hides the panel).
 @MainActor
 public final class PanelService {
-    public enum Placement: Sendable { case nearCursor, center }
+    public enum Placement: Sendable {
+        /// Next to the mouse pointer.
+        case nearCursor
+        case center
+        /// Below-right of a point in global coordinates (e.g. the text caret).
+        case near(CGPoint)
+    }
 
     private var panels: [String: FloatingPanel] = [:]
 
@@ -112,9 +121,11 @@ public final class PanelService {
         ])
         panel.contentView = effect
 
-        if let visible = ScreenGeometry.screenWithMouse()?.visibleFrame {
+        let anchor: CGPoint = if case .near(let point) = placement { point } else { NSEvent.mouseLocation }
+        let screen = NSScreen.screens.first { NSMouseInRect(anchor, $0.frame, false) } ?? ScreenGeometry.screenWithMouse()
+        if let visible = screen?.visibleFrame {
             let frame = switch placement {
-            case .nearCursor: ScreenGeometry.frame(size: size, near: NSEvent.mouseLocation, in: visible)
+            case .nearCursor, .near: ScreenGeometry.frame(size: size, near: anchor, in: visible)
             case .center: ScreenGeometry.center(size: size, in: visible)
             }
             panel.setFrame(frame, display: false)

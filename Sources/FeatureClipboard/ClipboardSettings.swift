@@ -20,6 +20,12 @@ final class ClipboardSettings {
     var ignoreConcealed: Bool { didSet { store.set(ignoreConcealed, for: "ignoreConcealed") } }
     var excludedApps: [String] { didSet { store.set(excludedApps, for: "excludedApps") } }
     var pausedIndefinitely: Bool { didSet { store.set(pausedIndefinitely, for: "pausedIndefinitely") } }
+    var windowPosition: WindowPosition { didSet { store.set(windowPosition.rawValue, for: "windowPosition") } }
+    /// `false` = "copy only, don't paste".
+    var autoPaste: Bool { didSet { store.set(autoPaste, for: "autoPaste") } }
+    var restorePrevious: Bool { didSet { store.set(restorePrevious, for: "restorePrevious") } }
+
+    enum WindowPosition: String, CaseIterable, Sendable { case mouse, center, textCursor }
 
     @ObservationIgnored var onLimitsChanged: (() -> Void)?
     @ObservationIgnored private let store: ScopedSettings
@@ -35,6 +41,9 @@ final class ClipboardSettings {
         ignoreConcealed = store.value("ignoreConcealed", default: true)
         excludedApps = store.value("excludedApps", default: ClipboardFilter.defaultExcludedApps)
         pausedIndefinitely = store.value("pausedIndefinitely", default: false)
+        windowPosition = WindowPosition(rawValue: store.value("windowPosition", default: "")) ?? .mouse
+        autoPaste = store.value("autoPaste", default: true)
+        restorePrevious = store.value("restorePrevious", default: false)
     }
 
     var maxAge: TimeInterval? { maxAgeDays > 0 ? TimeInterval(maxAgeDays) * 86_400 : nil }

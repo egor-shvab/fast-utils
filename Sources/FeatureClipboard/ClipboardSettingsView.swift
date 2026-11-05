@@ -24,6 +24,21 @@ struct ClipboardSettingsView: View {
     var body: some View {
         Form {
             Section {
+                Picker(String(localized: "clipboard.settings.windowPosition"), selection: $settings.windowPosition) {
+                    Text(String(localized: "clipboard.settings.position.mouse")).tag(ClipboardSettings.WindowPosition.mouse)
+                    Text(String(localized: "clipboard.settings.position.center")).tag(ClipboardSettings.WindowPosition.center)
+                    Text(String(localized: "clipboard.settings.position.textCursor")).tag(ClipboardSettings.WindowPosition.textCursor)
+                }
+                Toggle(String(localized: "clipboard.settings.autoPaste"), isOn: $settings.autoPaste)
+                Toggle(String(localized: "clipboard.settings.restorePrevious"), isOn: $settings.restorePrevious)
+                    .disabled(!settings.autoPaste)
+            } header: {
+                Text(String(localized: "clipboard.settings.window"))
+            } footer: {
+                Text(String(localized: "clipboard.settings.windowFooter")).foregroundStyle(.secondary)
+            }
+
+            Section {
                 Picker(String(localized: "clipboard.settings.maxItems"), selection: $settings.maxItems) {
                     ForEach(ClipboardSettings.maxItemsOptions, id: \.self) { Text("\($0)").tag($0) }
                 }
