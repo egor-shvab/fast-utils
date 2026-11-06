@@ -48,6 +48,7 @@ scripts/build.sh                     # release-сборка в build/FastUtils.a
 scripts/build.sh --debug             # debug-сборка с get-task-allow (можно подключить lldb)
 scripts/build.sh --run               # собрать, перезапустить из build/ и стримить логи приложения
 scripts/build.sh --install           # собрать, установить в /Applications и перезапустить
+scripts/release.sh                   # DMG установщика в build/FastUtils-<версия>.dmg (версия из Info.plist)
 scripts/create-signing-cert.sh       # один раз на Mac: создать сертификат "FastUtils Dev"
 swift scripts/make-icon.swift        # перегенерировать Resources/AppIcon.icns
 /usr/bin/log show --last 5m --style compact --predicate 'subsystem == "com.yahor.FastUtils"'
@@ -98,6 +99,7 @@ leaks FastUtils                      # утечки; нужна debug-сборк
 - **Ресурсы SwiftPM-зависимостей.** `build.sh` копирует `*.bundle` из каталога сборки в `Contents/Resources`. Сгенерированный SwiftPM аксессор `Bundle.module` может искать бандл в корне `.app` (а туда класть файлы нельзя — сломается подпись). Пока не проверено: сторонних зависимостей с ресурсами нет (от `KeyboardShortcuts` отказались — она требует SwiftUI-макросов). Проверить, если такая зависимость появится.
 - **Падение компилятора.** Key path к статическому свойству через экзистенциальный метатип (`types.map(\.id)`, где `types: [any Feature.Type]`) роняет Swift 6.4 в SILGen («Stack dump… While silgen constructor»). Пиши замыкание: `types.map { $0.id }`. Если компилятор падает без понятной ошибки — ищи такие конструкции.
 - **`switch`-выражение** нельзя использовать справа от `??` («'switch' may only be used as expression in return, throw, or as the source of an assignment») — сначала присвой его в отдельную константу.
+- **Релиз.** Версия — `CFBundleShortVersionString`/`CFBundleVersion` в `Resources/Info.plist`; меняй их `sed`-ом, а не `plutil -replace`: тот пересортировывает все ключи и раздувает дифф. `scripts/release.sh` собирает DMG через `hdiutil` (UDZO, HFS+) и подписывает его тем же сертификатом. Тег `v<версия>`; релиз на GitHub пользователь выкладывает сам через сайт, `gh` не установлен. Push — тоже пользователь: у шелла агента нет доступа к его SSH-ключу.
 - **«CUICatalog … unable to find a bundle» в логах.** Сотни сообщений уровня fault от CoreUI: у приложения нет `Assets.car` (в CLT нет `actool`). Безвредно, было с самого начала — не ищи в них причину проблем.
 
 ### SwiftUI без Xcode
