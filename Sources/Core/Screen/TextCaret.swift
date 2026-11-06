@@ -12,15 +12,7 @@ public enum TextCaret {
 
     /// The caret rect in AppKit global coordinates (bottom-left origin), or `nil`.
     public static func rect() -> CGRect? {
-        guard AXIsProcessTrusted() else { return nil }
-        let system = AXUIElementCreateSystemWide()
-        // Set on the system-wide element, the timeout applies to every element we query.
-        AXUIElementSetMessagingTimeout(system, messagingTimeout)
-        var focusedValue: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focusedValue) == .success,
-              let focusedValue, CFGetTypeID(focusedValue) == AXUIElementGetTypeID()
-        else { return nil }
-        let element = focusedValue as! AXUIElement
+        guard let element = focusedElement() else { return nil }
 
         var rangeValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &rangeValue) == .success,
@@ -37,6 +29,30 @@ public enum TextCaret {
               let primary = NSScreen.screens.first
         else { return nil }
         return flipToAppKit(rect, primaryHeight: primary.frame.height)
+    }
+
+    /// Whether the focused text has a non-empty selection; `nil` if the app does not say.
+    public static func hasSelection() -> Bool? {
+        guard let element = focusedElement() else { return nil }
+        var rangeValue: CFTypeRef?
+        var range = CFRange()
+        guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &rangeValue) == .success,
+              let rangeValue, CFGetTypeID(rangeValue) == AXValueGetTypeID(),
+              AXValueGetValue(rangeValue as! AXValue, .cfRange, &range)
+        else { return nil }
+        return range.length > 0
+    }
+
+    private static func focusedElement() -> AXUIElement? {
+        guard AXIsProcessTrusted() else { return nil }
+        let system = AXUIElementCreateSystemWide()
+        // Set on the system-wide element, the timeout applies to every element we query.
+        AXUIElementSetMessagingTimeout(system, messagingTimeout)
+        var focusedValue: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focusedValue) == .success,
+              let focusedValue, CFGetTypeID(focusedValue) == AXUIElementGetTypeID()
+        else { return nil }
+        return (focusedValue as! AXUIElement)
     }
 
     /// Accessibility uses a top-left origin at the primary screen's top edge.

@@ -302,3 +302,13 @@
 "settings.about.featuresFooter" = "Features are available via keyboard shortcuts and from the menu bar menu. Click a feature to open its settings.";
 "settings.about.noShortcut" = "no shortcut";
 "settings.about.openFeature" = "Open feature settings";
+
+/* Layout and case */
+"feature.text.title" = "Layout & Case";
+"feature.text.summary" = "Fixes text typed in the wrong keyboard layout and changes case — in the selection or the word before the cursor";
+"text.action.fixLayout" = "Fix Keyboard Layout";
+"text.action.toggleCase" = "Toggle Case";
+"text.hud.nothing" = "No text: select it or put the cursor after a word";
+"text.hud.noPermission" = "Accessibility access is needed to replace text";
+"text.settings.switchLayout" = "Switch keyboard layout after fixing";
+"text.settings.footer" = "With nothing selected, the word before the cursor is used. Terminals and some editors do not allow that — select the word instead.";

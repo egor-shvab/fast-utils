@@ -21,17 +21,19 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "FastUtilsApp",
-            dependencies: ["Core", "FeatureOCR", "FeatureTranslate", "FeatureClipboard"]
+            dependencies: ["Core", "FeatureOCR", "FeatureTranslate", "FeatureClipboard", "FeatureText"]
         ),
         .target(name: "Core"),
         .target(name: "FeatureOCR", dependencies: ["Core"]),
         .target(name: "FeatureTranslate", dependencies: ["Core"]),
         .target(name: "FeatureClipboard", dependencies: ["Core"]),
+        .target(name: "FeatureText", dependencies: ["Core"]),
 
         .testTarget(name: "CoreTests", dependencies: ["Core"], swiftSettings: testSettings),
         .testTarget(name: "FeatureOCRTests", dependencies: ["FeatureOCR"], swiftSettings: testSettings),
         .testTarget(name: "FeatureTranslateTests", dependencies: ["FeatureTranslate"], swiftSettings: testSettings),
         .testTarget(name: "FeatureClipboardTests", dependencies: ["FeatureClipboard"], swiftSettings: testSettings),
+        .testTarget(name: "FeatureTextTests", dependencies: ["FeatureText"], swiftSettings: testSettings),
         // Whole-app checks: links between features, localization of every source file.
         .testTarget(name: "AppTests", dependencies: ["FastUtilsApp"], swiftSettings: testSettings),
     ]
