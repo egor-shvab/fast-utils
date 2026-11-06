@@ -51,12 +51,14 @@ struct TranslationView: View {
             Button { model.swapDirection() } label: { Image(systemName: "arrow.left.arrow.right") }
                 .buttonStyle(.borderless)
                 .help(String(localized: "translate.window.swap"))
+                .accessibilityLabel(String(localized: "translate.window.swap"))
 
             Spacer()
             Toggle(isOn: $handle.isPinned) { Image(systemName: handle.isPinned ? "pin.fill" : "pin") }
                 .toggleStyle(.button)
                 .buttonStyle(.borderless)
                 .help(String(localized: "panel.pin"))
+                .accessibilityLabel(String(localized: "panel.pin"))
         }
     }
 

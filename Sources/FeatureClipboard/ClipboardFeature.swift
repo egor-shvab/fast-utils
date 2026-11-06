@@ -102,6 +102,10 @@ public final class ClipboardFeature: Feature {
         context.pasteboard.startMonitoring()
         updateIndicator()
         await applyLimits()
+        prewarmTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            await self?.prewarmHistoryWindow()
+        }
     }
 
     public func stop() async {
@@ -109,6 +113,8 @@ public final class ClipboardFeature: Feature {
         context.pasteboard.shouldReadContents = nil
         eventsTask?.cancel()
         eventsTask = nil
+        prewarmTask?.cancel()
+        prewarmTask = nil
         pauseTimer?.invalidate()
         context.statusIndicator.set(symbol: nil)
     }
@@ -201,6 +207,22 @@ public final class ClipboardFeature: Feature {
 
     static let panelID = "clipboard.history"
     private var keyMonitor: Any?
+    private var prewarmTask: Task<Void, Never>?
+
+    /// The first history window after launch took 190–300 ms (cold SwiftUI, SQLite and
+    /// thumbnail caches), later ones ~60 ms (TZ.md §11: < 150 ms). Rendering the list once
+    /// off-screen shortly after launch moves that cost out of the first ⌥⌘V.
+    private func prewarmHistoryWindow() async {
+        guard let store, !Task.isCancelled else { return }
+        let started = ContinuousClock.now
+        let model = HistoryViewModel(store: store, limit: settings.maxItems)
+        await model.reload()
+        let hosting = NSHostingView(rootView: HistoryView(model: model))
+        hosting.frame = CGRect(x: 0, y: 0, width: 440, height: 540)
+        hosting.layoutSubtreeIfNeeded()
+        _ = hosting.fittingSize
+        log.notice("History window prewarmed in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
+    }
 
     func toggleHistory() async {
         if context.panels.isPresented(Self.panelID) {

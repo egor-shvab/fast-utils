@@ -9,7 +9,8 @@ struct SettingsView: View {
 
     var body: some View {
         TabView(selection: $navigation.selectedTab) {
-            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud, settings: context.settings)
+            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud,
+                                settings: context.settings, preferences: context.preferences)
                 .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
 
@@ -56,6 +57,7 @@ struct GeneralSettingsView: View {
     let launchAtLogin: LaunchAtLogin
     @Bindable var hud: HUDService
     let settings: SettingsStore
+    @Bindable var preferences: AppPreferences
 
     var body: some View {
         Form {
@@ -64,6 +66,20 @@ struct GeneralSettingsView: View {
                     get: { launchAtLogin.isEnabled },
                     set: { launchAtLogin.setEnabled($0) }
                 ))
+                Picker(String(localized: "settings.general.language"), selection: Binding(
+                    get: { preferences.language },
+                    set: { changeLanguage($0) }
+                )) {
+                    Text(String(localized: "settings.general.language.system")).tag(InterfaceLanguage.system)
+                    // Language names are shown in their own language, as macOS does.
+                    Text(verbatim: "Русский").tag(InterfaceLanguage.russian)
+                    Text(verbatim: "English").tag(InterfaceLanguage.english)
+                }
+                Toggle(String(localized: "settings.general.menuBarIcon"), isOn: $preferences.showMenuBarIcon)
+            } footer: {
+                if !preferences.showMenuBarIcon {
+                    Text(String(localized: "settings.general.menuBarIconFooter")).foregroundStyle(.secondary)
+                }
             }
             Section {
                 Toggle(String(localized: "settings.general.hud"), isOn: $hud.isEnabled)
@@ -139,6 +155,18 @@ struct GeneralSettingsView: View {
         if alert.runModal() == .alertFirstButtonReturn { AppRelauncher.relaunch() }
     }
 
+    private func changeLanguage(_ language: InterfaceLanguage) {
+        guard language != preferences.language else { return }
+        preferences.language = language
+        guard language != preferences.launchLanguage else { return }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "settings.general.languageChanged")
+        alert.informativeText = String(localized: "settings.general.languageRestart")
+        alert.addButton(withTitle: String(localized: "settings.general.restart"))
+        alert.addButton(withTitle: String(localized: "settings.general.later"))
+        if alert.runModal() == .alertFirstButtonReturn { AppRelauncher.relaunch() }
+    }
+
     private func showError(_ error: Error) {
         let alert = NSAlert(error: error)
         alert.runModal()
@@ -154,21 +182,6 @@ enum AppRelauncher {
         process.arguments = ["-c", "sleep 0.7; /usr/bin/open \"$0\"", Bundle.main.bundlePath]
         try? process.run()
         NSApp.terminate(nil)
-    }
-}
-
-/// Temporary content for tabs implemented in later stages.
-public struct PlaceholderPane: View {
-    let text: String
-
-    public init(text: String) { self.text = text }
-
-    public var body: some View {
-        Text(text)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

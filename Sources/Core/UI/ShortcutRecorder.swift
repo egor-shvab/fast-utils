@@ -46,6 +46,7 @@ struct ShortcutRecorder: View {
                 .foregroundStyle(.secondary)
                 .disabled(current == nil)
                 .help(String(localized: "shortcut.recorder.clear"))
+                .accessibilityLabel(String(localized: "shortcut.recorder.clear"))
 
                 Button {
                     stopRecording()
@@ -58,6 +59,7 @@ struct ShortcutRecorder: View {
                 .foregroundStyle(.secondary)
                 .disabled(current == hotkeys.defaultShortcut(for: id))
                 .help(String(localized: "shortcut.recorder.reset"))
+                .accessibilityLabel(String(localized: "shortcut.recorder.reset"))
             }
             if let note {
                 Text(note.text)

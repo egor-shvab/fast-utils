@@ -279,3 +279,12 @@
 "settings.general.importedRestart" = "FastUtils needs to restart for them to take effect.";
 "settings.general.restart" = "Restart";
 "settings.general.later" = "Later";
+
+/* Stage 10 */
+"settings.general.language" = "Interface language";
+"settings.general.language.system" = "System default";
+"settings.general.menuBarIcon" = "Show icon in menu bar";
+"settings.general.menuBarIconFooter" = "To open Settings while the icon is hidden, launch FastUtils again from Finder or Spotlight.";
+"settings.general.languageChanged" = "Interface language changed";
+"settings.general.languageRestart" = "The new language takes effect after FastUtils restarts.";
+"clipboard.settings.removeApp" = "Remove from exceptions";

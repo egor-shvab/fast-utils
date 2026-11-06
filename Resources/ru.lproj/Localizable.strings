@@ -279,3 +279,12 @@
 "settings.general.importedRestart" = "Чтобы они вступили в силу, FastUtils нужно перезапустить.";
 "settings.general.restart" = "Перезапустить";
 "settings.general.later" = "Позже";
+
+/* Stage 10 */
+"settings.general.language" = "Язык интерфейса";
+"settings.general.language.system" = "Как в системе";
+"settings.general.menuBarIcon" = "Показывать иконку в строке меню";
+"settings.general.menuBarIconFooter" = "Чтобы открыть настройки, когда иконка скрыта, запустите FastUtils ещё раз из Finder или Spotlight.";
+"settings.general.languageChanged" = "Язык интерфейса изменён";
+"settings.general.languageRestart" = "Новый язык применится после перезапуска FastUtils.";
+"clipboard.settings.removeApp" = "Убрать из исключений";

@@ -30,6 +30,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
+        statusItem.isVisible = context.preferences.showMenuBarIcon
         observeIndicator()
     }
 
@@ -112,6 +113,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
     private func observeIndicator() {
         withObservationTracking {
             _ = context.statusIndicator.symbol
+            _ = context.preferences.showMenuBarIcon
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.applyIndicator()
@@ -126,6 +128,7 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
         image?.isTemplate = true
         statusItem.button?.image = image
         statusItem.button?.toolTip = context.statusIndicator.tooltip
+        statusItem.isVisible = context.preferences.showMenuBarIcon
     }
     @objc private func showAbout() { openSettings(.about) }
 }

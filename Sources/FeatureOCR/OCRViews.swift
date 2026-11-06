@@ -85,6 +85,7 @@ struct OCRResultView: View {
                     .toggleStyle(.button)
                     .buttonStyle(.borderless)
                     .help(String(localized: "panel.pin"))
+                    .accessibilityLabel(String(localized: "panel.pin"))
             }
             TextEditor(text: $model.text)
                 .font(.body)

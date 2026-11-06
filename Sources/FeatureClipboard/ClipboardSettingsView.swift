@@ -78,6 +78,8 @@ struct ClipboardSettingsView: View {
                             Image(systemName: "minus.circle")
                         }
                         .buttonStyle(.borderless)
+                        .accessibilityLabel(String(localized: "clipboard.settings.removeApp"))
+                        .help(String(localized: "clipboard.settings.removeApp"))
                     }
                 }
                 Button(String(localized: "clipboard.settings.addApp"), action: addExcludedApp)

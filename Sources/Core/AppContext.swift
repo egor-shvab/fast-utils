@@ -21,6 +21,7 @@ public final class AppContext {
     public let paste: PasteService
     public let areaSelection: AreaSelectionService
     public let statusIndicator = StatusIndicator()
+    public let preferences: AppPreferences
 
     public init(
         settings: SettingsStore = SettingsStore(),
@@ -45,6 +46,7 @@ public final class AppContext {
             log: Logger(subsystem: AppInfo.bundleIdentifier, category: "hotkeys")
         )
         self.permissions = PermissionsService(checker: permissionChecker)
+        self.preferences = AppPreferences(settings: settings.app)
         self.hud = HUDService(settings: settings.app)
         self.panels = PanelService()
         self.launchAtLogin = LaunchAtLogin()

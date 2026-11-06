@@ -39,7 +39,7 @@ struct HistoryView: View {
 
             Picker("", selection: $model.filter) {
                 ForEach(HistoryFilter.allCases, id: \.self) { filter in
-                    Image(systemName: filter.icon).help(filter.title).tag(filter)
+                    Image(systemName: filter.icon).help(filter.title).accessibilityLabel(filter.title).tag(filter)
                 }
             }
             .pickerStyle(.segmented)
