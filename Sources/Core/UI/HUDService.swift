@@ -14,7 +14,8 @@ public final class HUDService {
     public var position: Position { didSet { settings.set(position.rawValue, for: "hud.position") } }
 
     @ObservationIgnored private let settings: ScopedSettings
-    @ObservationIgnored private var panel: NSPanel?
+    @ObservationIgnored private(set) var panel: NSPanel?
+    @ObservationIgnored private var hostingController: NSViewController?
     @ObservationIgnored private var hideTask: Task<Void, Never>?
     @ObservationIgnored private let duration: Duration = .milliseconds(1500)
 
@@ -24,8 +25,12 @@ public final class HUDService {
         position = Position(rawValue: settings.value("hud.position", default: "")) ?? .bottomCenter
     }
 
-    /// Shows a message. Errors are shown even when HUDs are turned off.
-    public func show(_ text: String, icon: String? = nil, style: Style = .success) {
+    /// Largest HUD size; longer text is truncated instead of overflowing the panel.
+    static let maxSize = CGSize(width: 440, height: 200)
+
+    /// Shows a message with an optional secondary line (e.g. a preview of copied text).
+    /// Errors are shown even when HUDs are turned off.
+    public func show(_ text: String, detail: String? = nil, icon: String? = nil, style: Style = .success) {
         guard isEnabled || style == .error else { return }
         let defaultIcon = switch style {
         case .success: "checkmark.circle.fill"
@@ -33,24 +38,35 @@ public final class HUDService {
         case .error: "exclamationmark.triangle.fill"
         }
         let symbol = icon ?? defaultIcon
-        let hosting = NSHostingView(rootView: HUDView(text: text, icon: symbol, style: style))
-        let size = hosting.fittingSize
+        // `fittingSize` of an NSHostingView measures text unwrapped, so long text made the
+        // panel wider than its content. Ask SwiftUI for the size within an explicit maximum.
+        let controller = NSHostingController(rootView: HUDView(text: text, detail: detail, icon: symbol, style: style))
+        let fitted = controller.sizeThatFits(in: Self.maxSize)
+        let size = CGSize(width: ceil(min(fitted.width, Self.maxSize.width)),
+                          height: ceil(min(fitted.height, Self.maxSize.height)))
+        hostingController = controller
+        let hosting = controller.view
 
         let panel = self.panel ?? makePanel()
         self.panel = panel
-        let effect = panel.contentView as! NSVisualEffectView
-        effect.subviews.forEach { $0.removeFromSuperview() }
-        hosting.frame = CGRect(origin: .zero, size: size)
-        hosting.autoresizingMask = [.width, .height]
-        effect.addSubview(hosting)
-
+        // Size the panel first, then put the content in at exactly that size. Adding the
+        // content first and resizing afterwards let autoresizing add the size difference
+        // again, so the content ended up wider than the panel and shifted out of it.
+        var frame = CGRect(origin: panel.frame.origin, size: size)
         if let visible = ScreenGeometry.screenWithMouse()?.visibleFrame {
-            let frame = switch position {
+            frame = switch position {
             case .bottomCenter: ScreenGeometry.bottomCenter(size: size, in: visible)
             case .nearCursor: ScreenGeometry.frame(size: size, near: NSEvent.mouseLocation, in: visible)
             }
-            panel.setFrame(frame, display: true)
         }
+        panel.setFrame(frame, display: false)
+
+        let effect = panel.contentView as! NSVisualEffectView
+        effect.subviews.forEach { $0.removeFromSuperview() }
+        hosting.frame = effect.bounds
+        hosting.autoresizingMask = [.width, .height]
+        effect.addSubview(hosting)
+        panel.display()
 
         let animate = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         if !panel.isVisible {
@@ -104,19 +120,29 @@ public final class HUDService {
 
 private struct HUDView: View {
     let text: String
+    let detail: String?
     let icon: String
     let style: HUDService.Style
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundStyle(style == .error ? Color.orange : (style == .success ? Color.green : Color.accentColor))
-            Text(text)
-                .font(.body.weight(.medium))
-                .lineLimit(3)
-                .frame(maxWidth: 360, alignment: .leading)
-                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(text)
+                    .font(.body.weight(.semibold))
+                    .lineLimit(2)
+                if let detail, !detail.isEmpty {
+                    Text(detail)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                }
+            }
+            .multilineTextAlignment(.leading)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)

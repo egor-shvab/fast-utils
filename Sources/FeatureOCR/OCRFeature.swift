@@ -131,9 +131,9 @@ public final class OCRFeature: Feature {
         context.pasteboard.writeText(text)
         if settings.playSound { NSSound(named: "Tink")?.play() }
         let format = NSLocalizedString("ocr.hud.copied", comment: "")
+        // The HUD truncates the preview itself; just keep it to one paragraph.
         let preview = text.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
-        let shortPreview = preview.count > 60 ? String(preview.prefix(60)) + "…" : preview
-        context.hud.show(String.localizedStringWithFormat(format, text.count) + "\n" + shortPreview)
+        context.hud.show(String.localizedStringWithFormat(format, text.count), detail: String(preview.prefix(200)))
     }
 
     private func showResultWindow(_ text: String) {
