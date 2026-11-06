@@ -16,15 +16,20 @@ final class RecorderState: ObservableObject {
 /// Records a global shortcut for one action.
 /// Click → press a combination. Esc cancels, ⌫ clears. Hot keys are paused while recording
 /// so the combination reaches the recorder instead of running an action.
+/// Lays out the whole row (title on the left, controls on the right, a note under them
+/// across the full width), so a long note does not push the title and controls apart.
 struct ShortcutRecorder: View {
+    let title: String
     let id: ActionID
     let hotkeys: HotkeyService
 
     @StateObject private var state = RecorderState()
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 4) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
+                Text(title)
+                Spacer(minLength: 12)
                 Button(action: toggleRecording) {
                     Text(label)
                         .monospacedDigit()
@@ -65,8 +70,9 @@ struct ShortcutRecorder: View {
                 Text(note.text)
                     .font(.caption)
                     .foregroundStyle(note.isError ? Color.red : Color.secondary)
-                    .multilineTextAlignment(.trailing)
+                    .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .onDisappear(perform: stopRecording)

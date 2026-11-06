@@ -289,3 +289,14 @@
 "settings.general.shortcuts" = "Keyboard shortcuts";
 "settings.general.resetShortcuts" = "Restore all default shortcuts";
 "settings.general.shortcutsFooter" = "Each feature's shortcuts are set on its own tab.";
+"feature.ocr.summary" = "Select an area of the screen and its text lands in the clipboard.";
+"feature.translate.summary" = "Translates the clipboard or the selected text.";
+"feature.clipboard.summary" = "Keeps what you copy and pastes it back in a couple of keystrokes.";
+"settings.general.summary" = "Launch, language, notifications and settings backup.";
+"settings.about.summary" = "What FastUtils can do, version and data folder.";
+"settings.sidebar.features" = "Features";
+"settings.feature.off" = "Off";
+"settings.about.tagline" = "A menu bar utility that recognizes text on screen, translates it and remembers everything you copy. Everything is a keyboard shortcut away, in any app.";
+"settings.about.featuresFooter" = "Features are available via keyboard shortcuts and from the menu bar menu. Click a feature to open its settings.";
+"settings.about.noShortcut" = "no shortcut";
+"settings.about.openFeature" = "Open feature settings";

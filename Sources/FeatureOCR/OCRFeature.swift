@@ -22,6 +22,8 @@ public final class OCRFeature: Feature {
 
     public var title: String { String(localized: "feature.ocr.title") }
     public var icon: String { "text.viewfinder" }
+    public var summary: String { String(localized: "feature.ocr.summary") }
+    public var tint: Color { .blue }
     public var requiredPermissions: Set<Permission> { [.screenRecording] }
 
     public var actions: [FeatureAction] {

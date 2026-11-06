@@ -289,3 +289,14 @@
 "settings.general.shortcuts" = "Сочетания клавиш";
 "settings.general.resetShortcuts" = "Вернуть все сочетания по умолчанию";
 "settings.general.shortcutsFooter" = "Сочетания каждой функции настраиваются на её вкладке.";
+"feature.ocr.summary" = "Выделите область экрана — текст из неё окажется в буфере обмена.";
+"feature.translate.summary" = "Переводит текст из буфера обмена или выделенный текст.";
+"feature.clipboard.summary" = "Хранит скопированное и вставляет нужное за пару нажатий.";
+"settings.general.summary" = "Запуск, язык, уведомления и резервная копия настроек.";
+"settings.about.summary" = "Что умеет FastUtils, версия и папка с данными.";
+"settings.sidebar.features" = "Функции";
+"settings.feature.off" = "Выкл.";
+"settings.about.tagline" = "Утилита в строке меню: распознаёт текст с экрана, переводит и помнит всё, что вы копировали. Всё вызывается сочетаниями клавиш из любого приложения.";
+"settings.about.featuresFooter" = "Функции доступны по сочетаниям клавиш и из меню в строке меню. Нажмите на функцию, чтобы открыть её настройки.";
+"settings.about.noShortcut" = "без сочетания";
+"settings.about.openFeature" = "Открыть настройки функции";

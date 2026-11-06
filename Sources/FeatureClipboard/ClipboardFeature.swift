@@ -34,6 +34,8 @@ public final class ClipboardFeature: Feature {
 
     public var title: String { String(localized: "feature.clipboard.title") }
     public var icon: String { "doc.on.clipboard" }
+    public var summary: String { String(localized: "feature.clipboard.summary") }
+    public var tint: Color { .orange }
     public var requiredPermissions: Set<Permission> { [.accessibility, .pasteboard] }
 
     public var actions: [FeatureAction] {

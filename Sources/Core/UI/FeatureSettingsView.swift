@@ -17,23 +17,28 @@ struct FeatureSettingsView: View {
 
         Form {
             Section {
-                Toggle(isOn: Binding(
-                    get: { registry.isEnabled(featureID) },
-                    set: { newValue in Task { await registry.setEnabled(newValue, for: featureID) } }
-                )) {
-                    Label(String(localized: "settings.feature.enabled"), systemImage: feature.icon)
+                SettingsHeader(icon: feature.icon, tint: feature.tint, title: feature.title, summary: feature.summary) {
+                    Toggle(String(localized: "settings.feature.enabled"), isOn: Binding(
+                        get: { registry.isEnabled(featureID) },
+                        set: { newValue in Task { await registry.setEnabled(newValue, for: featureID) } }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .help(String(localized: "settings.feature.enabledFooter"))
+                    .accessibilityLabel(String(localized: "settings.feature.enabled"))
                 }
             } footer: {
-                Text(String(localized: "settings.feature.enabledFooter")).foregroundStyle(.secondary)
+                if !enabled {
+                    Text(String(localized: "settings.feature.enabledFooter")).foregroundStyle(.secondary)
+                }
             }
 
             Group {
                 if !actionIDs.isEmpty {
                     Section {
                         ForEach(actionIDs, id: \.self) { actionID in
-                            LabeledContent(hotkeys.title(for: actionID) ?? actionID.rawValue) {
-                                ShortcutRecorder(id: actionID, hotkeys: hotkeys)
-                            }
+                            ShortcutRecorder(title: hotkeys.title(for: actionID) ?? actionID.rawValue,
+                                             id: actionID, hotkeys: hotkeys)
                         }
                         Button(String(localized: "settings.feature.resetShortcuts")) { hotkeys.reset(actionIDs) }
                     } header: {

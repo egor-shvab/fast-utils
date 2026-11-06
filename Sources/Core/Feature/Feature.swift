@@ -13,6 +13,10 @@ public protocol Feature: AnyObject {
     var title: String { get }
     /// SF Symbol name.
     var icon: String { get }
+    /// One line on what the feature does, shown in its Settings page header.
+    var summary: String { get }
+    /// Background color of the feature's icon tile in Settings.
+    var tint: Color { get }
     var requiredPermissions: Set<Permission> { get }
     var actions: [FeatureAction] { get }
     var menuItems: [MenuItemDescriptor] { get }
@@ -30,6 +34,8 @@ public protocol Feature: AnyObject {
 }
 
 public extension Feature {
+    var summary: String { "" }
+    var tint: Color { .accentColor }
     var requiredPermissions: Set<Permission> { [] }
     var menuItems: [MenuItemDescriptor] {
         actions.filter { !$0.isInternal }.map { MenuItemDescriptor(actionID: $0.id, title: $0.title) }

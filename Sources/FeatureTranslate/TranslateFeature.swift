@@ -24,6 +24,8 @@ public final class TranslateFeature: Feature {
 
     public var title: String { String(localized: "feature.translate.title") }
     public var icon: String { "character.bubble" }
+    public var summary: String { String(localized: "feature.translate.summary") }
+    public var tint: Color { .purple }
     public var requiredPermissions: Set<Permission> { [.pasteboard] }
 
     public var actions: [FeatureAction] {

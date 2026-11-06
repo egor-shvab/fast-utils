@@ -8,26 +8,89 @@ struct SettingsView: View {
     @Bindable var navigation: SettingsNavigation
 
     var body: some View {
-        TabView(selection: $navigation.selectedTab) {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
+            List(selection: Binding<SettingsTab?>(
+                get: { navigation.selectedTab },
+                set: { if let tab = $0 { navigation.selectedTab = tab } }
+            )) {
+                SidebarRow(title: String(localized: "settings.tab.general"), icon: "gearshape", tint: .gray)
+                    .tag(SettingsTab.general)
+
+                Section(String(localized: "settings.sidebar.features")) {
+                    ForEach(featureIDs, id: \.self) { id in
+                        let feature = registry.feature(id)!
+                        SidebarRow(title: feature.title, icon: feature.icon, tint: feature.tint,
+                                   isOff: !registry.isEnabled(id))
+                            .tag(SettingsTab.feature(id))
+                    }
+                }
+
+                Section {
+                    SidebarRow(title: String(localized: "settings.tab.about"), icon: "info", tint: .gray)
+                        .tag(SettingsTab.about)
+                }
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 260)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            detail
+                .navigationTitle(title)
+        }
+        .frame(minWidth: 680, minHeight: 460)
+    }
+
+    private var featureIDs: [FeatureID] { registry.features.map { FeatureRegistry.id(of: $0) } }
+
+    @ViewBuilder
+    private var detail: some View {
+        switch navigation.selectedTab {
+        case .general:
             GeneralSettingsView(launchAtLogin: context.launchAtLogin, hud: context.hud,
                                 settings: context.settings, preferences: context.preferences,
                                 hotkeys: context.hotkeys)
-                .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
-                .tag(SettingsTab.general)
-
-            ForEach(registry.features.map { FeatureRegistry.id(of: $0) }, id: \.self) { id in
-                let feature = registry.feature(id)!
-                FeatureSettingsView(featureID: id, registry: registry, hotkeys: context.hotkeys,
-                                    permissions: context.permissions)
-                    .tabItem { Label(feature.title, systemImage: feature.icon) }
-                    .tag(SettingsTab.feature(id))
+        case .feature(let id) where registry.feature(id) != nil:
+            FeatureSettingsView(featureID: id, registry: registry, hotkeys: context.hotkeys,
+                                permissions: context.permissions)
+                .id(id)  // fresh state per feature page
+        case .feature:
+            EmptyView()
+        case .about:
+            AboutView(storage: context.storage, registry: registry, hotkeys: context.hotkeys) { id in
+                navigation.selectedTab = .feature(id)
             }
-
-            AboutView(storage: context.storage)
-                .tabItem { Label(String(localized: "settings.tab.about"), systemImage: "info.circle") }
-                .tag(SettingsTab.about)
         }
-        .frame(width: 620, height: 560)
+    }
+
+    private var title: String {
+        switch navigation.selectedTab {
+        case .general: String(localized: "settings.tab.general")
+        case .feature(let id): registry.feature(id)?.title ?? ""
+        case .about: String(localized: "settings.tab.about")
+        }
+    }
+}
+
+private struct SidebarRow: View {
+    let title: String
+    let icon: String
+    let tint: Color
+    var isOff = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            SettingsIcon(symbol: icon, tint: isOff ? .gray : tint)
+            Text(title)
+                .foregroundStyle(isOff ? .secondary : .primary)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            if isOff {
+                Text(String(localized: "settings.feature.off"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 
@@ -40,6 +103,10 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                SettingsHeader(icon: "gearshape", tint: .gray, title: String(localized: "settings.tab.general"),
+                               summary: String(localized: "settings.general.summary"))
+            }
             Section {
                 Toggle(String(localized: "settings.general.launchAtLogin"), isOn: Binding(
                     get: { launchAtLogin.isEnabled },
@@ -157,20 +224,98 @@ enum AppRelauncher {
 
 struct AboutView: View {
     let storage: StorageService
+    let registry: FeatureRegistry
+    let hotkeys: HotkeyService
+    let openFeature: (FeatureID) -> Void
 
     var body: some View {
-        VStack(spacing: 12) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 96, height: 96)
-            Text(AppInfo.name).font(.title.bold())
-            Text(String(format: String(localized: "settings.about.version"), AppInfo.version))
-                .foregroundStyle(.secondary)
-            Button(String(localized: "settings.about.openData")) {
-                try? FileManager.default.createDirectory(at: storage.baseURL, withIntermediateDirectories: true)
-                NSWorkspace.shared.open(storage.baseURL)
+        Form {
+            Section {
+                SettingsHeader(icon: "info", tint: .gray, title: String(localized: "settings.tab.about"),
+                               summary: String(localized: "settings.about.summary"))
+            }
+            Section {
+                HStack(spacing: 16) {
+                    Image(nsImage: NSApp.applicationIconImage)
+                        .resizable()
+                        .frame(width: 72, height: 72)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(AppInfo.name).font(.title2.bold())
+                        Text(String(format: String(localized: "settings.about.version"), AppInfo.version))
+                            .foregroundStyle(.secondary)
+                        Text(String(localized: "settings.about.tagline"))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.vertical, 4)
+                Button(String(localized: "settings.about.openData")) {
+                    try? FileManager.default.createDirectory(at: storage.baseURL, withIntermediateDirectories: true)
+                    NSWorkspace.shared.open(storage.baseURL)
+                }
+            }
+            Section {
+                ForEach(registry.features.map { FeatureRegistry.id(of: $0) }, id: \.self) { id in
+                    FeatureOverviewRow(feature: registry.feature(id)!, isEnabled: registry.isEnabled(id),
+                                       hotkeys: hotkeys) { openFeature(id) }
+                }
+            } header: {
+                Text(String(localized: "settings.sidebar.features"))
+            } footer: {
+                Text(String(localized: "settings.about.featuresFooter")).foregroundStyle(.secondary)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .formStyle(.grouped)
+    }
+}
+
+/// A feature in the About overview: what it does and how to call it. Click opens its page.
+private struct FeatureOverviewRow: View {
+    let feature: any Feature
+    let isEnabled: Bool
+    let hotkeys: HotkeyService
+    let open: () -> Void
+
+    var body: some View {
+        Button(action: open) {
+            HStack(alignment: .top, spacing: 12) {
+                SettingsIcon(symbol: feature.icon, tint: isEnabled ? feature.tint : .gray, size: 32)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(feature.title).font(.headline)
+                        if !isEnabled {
+                            Text(String(localized: "settings.feature.off"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    if !feature.summary.isEmpty {
+                        Text(feature.summary)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    ForEach(feature.actions.filter { !$0.isInternal }, id: \.id) { action in
+                        HStack {
+                            Text(action.title)
+                            Spacer()
+                            Text(hotkeys.shortcut(for: action.id)?.description
+                                 ?? String(localized: "settings.about.noShortcut"))
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                        .font(.callout)
+                    }
+                }
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 2)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, 4)
+        .help(String(localized: "settings.about.openFeature"))
     }
 }

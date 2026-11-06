@@ -40,7 +40,11 @@ public final class SettingsWindowController {
         let root = SettingsView(registry: registry, context: context, navigation: navigation)
         let window = NSWindow(contentViewController: NSHostingController(rootView: root))
         window.title = String(localized: "settings.window.title")
-        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        window.toolbarStyle = .unified
+        window.setContentSize(CGSize(width: 760, height: 560))
+        window.contentMinSize = CGSize(width: 680, height: 460)
+        window.setFrameAutosaveName("SettingsWindow")
         window.isReleasedWhenClosed = false
         window.center()
         return window
