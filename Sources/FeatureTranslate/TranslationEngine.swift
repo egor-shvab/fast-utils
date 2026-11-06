@@ -20,7 +20,7 @@ struct TranslationResult: Sendable, Equatable {
     var fallbackReason: String?
 }
 
-/// A translation backend. Apple Translation now; DeepL and Google in stage 8 (TZ.md §12.4).
+/// A translation backend: Apple Translation, DeepL or Google.
 @MainActor
 protocol TranslationEngine: AnyObject {
     var name: String { get }

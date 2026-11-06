@@ -1,6 +1,5 @@
-// Renders the placeholder app icon into an .iconset and packs it with iconutil.
+// Renders the app icon into an .iconset and packs it with iconutil. No Xcode/actool needed.
 // Usage: swift scripts/make-icon.swift   (writes Resources/AppIcon.icns)
-// Temporary until the final icon (ROADMAP stage 10). No Xcode/actool needed.
 import AppKit
 
 let symbolName = "text.viewfinder"

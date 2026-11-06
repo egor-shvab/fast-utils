@@ -9,7 +9,7 @@ public struct AreaSelection: @unchecked Sendable {
 }
 
 /// Screenshot-style area selection over a *frozen* snapshot of every screen, so menus and
-/// tooltips that would vanish on mouse move can still be captured (TZ.md §5.1).
+/// tooltips that would vanish on mouse move can still be captured.
 /// Reusable by future features (color picker, screenshots).
 @MainActor
 public final class AreaSelectionService {

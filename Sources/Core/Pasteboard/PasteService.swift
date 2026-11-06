@@ -40,7 +40,7 @@ public final class FakeKeystrokeSender: KeystrokeSender {
     }
 }
 
-/// Puts content on the clipboard and pastes it into the app the user was in (TZ.md §7.4).
+/// Puts content on the clipboard and pastes it into the app the user was in.
 @MainActor
 public final class PasteService {
     public enum Outcome: Equatable {

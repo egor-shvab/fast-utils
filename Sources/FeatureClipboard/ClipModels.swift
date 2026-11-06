@@ -54,7 +54,7 @@ public struct ClipItem: Identifiable, Sendable, Equatable {
     public var byteSize: Int
 }
 
-/// Turns a snapshot into content of one kind (TZ.md §12.4). New kinds (colors, code…) are added
+/// Turns a snapshot into content of one kind. New kinds (colors, code…) are added
 /// as new handlers without touching the store or the history window.
 protocol ClipContentHandler: Sendable {
     func content(from snapshot: PasteboardSnapshot) -> ClipContent?
@@ -110,7 +110,7 @@ enum ClipContentFactory {
     }
 }
 
-/// What must never get into history (TZ.md §7.1).
+/// What must never get into history.
 enum ClipboardFilter {
     /// Markers password managers and other apps put on sensitive or temporary clipboard data
     /// (nspasteboard.org conventions).

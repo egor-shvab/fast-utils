@@ -1,7 +1,7 @@
 import Core
 import Observation
 
-/// Translation preferences, persisted under `translate.*` (TZ.md §6.2).
+/// Translation preferences, persisted under `translate.*`.
 @MainActor
 @Observable
 final class TranslateSettings {

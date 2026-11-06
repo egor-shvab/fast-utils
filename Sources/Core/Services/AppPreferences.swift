@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Interface language choice (TZ.md §10). Applied at launch through the app's own
+/// Interface language choice. Applied at launch through the app's own
 /// `AppleLanguages` default, so a change takes effect after a restart.
 public enum InterfaceLanguage: String, CaseIterable, Sendable {
     case system
@@ -31,7 +31,7 @@ public enum InterfaceLanguage: String, CaseIterable, Sendable {
 public final class AppPreferences {
     @ObservationIgnored private let settings: ScopedSettings
 
-    /// TZ.md §4: when hidden, Settings open by launching the app again from Finder or Spotlight.
+    /// When hidden, Settings open by launching the app again from Finder or Spotlight.
     public var showMenuBarIcon: Bool { didSet { settings.set(showMenuBarIcon, for: "menuBarIcon") } }
 
     /// Saved choice; the running interface keeps the language it started with.

@@ -4,7 +4,7 @@ import Core
 import OSLog
 import SwiftUI
 
-/// Function 2 (TZ.md §6): translate the clipboard text and show it in a floating window.
+/// Translation: translate the clipboard text and show it in a floating window.
 public final class TranslateFeature: Feature {
     public static let id: FeatureID = "translate"
     static let panelID = "translate.window"

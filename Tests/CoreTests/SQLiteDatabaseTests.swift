@@ -28,7 +28,7 @@ struct SQLiteDatabaseTests {
         #expect(try db.query("SELECT count(*) AS c FROM t").first?.int("c") == 0)
     }
 
-    /// Stage 5 storage prototype: substring search over a lowercased column on 5 000 rows.
+    /// Storage prototype: substring search over a lowercased column on 5 000 rows.
     @Test func substringSearchOn5000RowsIsFast() throws {
         let db = try SQLiteDatabase(path: ":memory:")
         try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, search TEXT, updated REAL)")

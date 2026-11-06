@@ -3,7 +3,7 @@ import Testing
 @testable import Core
 
 @MainActor
-struct Stage10CoreTests {
+struct AppPreferencesTests {
     private func makeDefaults() -> UserDefaults {
         UserDefaults(suiteName: "FastUtilsTests.\(UUID().uuidString)")!
     }

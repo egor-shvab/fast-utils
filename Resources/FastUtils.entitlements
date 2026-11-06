@@ -2,6 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- No App Sandbox: global hotkeys, simulated Cmd+V and screen capture need it off (TZ.md §2). -->
+	<!-- No App Sandbox: global hotkeys, simulated Cmd+V and screen capture need it off. -->
 </dict>
 </plist>

@@ -43,7 +43,7 @@ public struct ClipboardChanged: AppEvent {
 /// The single place that reads and writes the system clipboard. Features never touch
 /// `NSPasteboard` directly, so Core knows which changes FastUtils made itself.
 ///
-/// Monitoring (TZ.md §7.1): macOS has no "clipboard changed" event, so `changeCount` is polled
+/// Monitoring: macOS has no "clipboard changed" event, so `changeCount` is polled
 /// every 0.5 s; contents are read only when it changed. Reference-counted: runs only while
 /// some feature needs it.
 @MainActor

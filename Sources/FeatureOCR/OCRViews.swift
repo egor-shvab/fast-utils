@@ -69,7 +69,7 @@ final class OCRResultModel: ObservableObject {
     init(text: String) { self.text = text }
 }
 
-/// Optional result window (TZ.md §5.4): edit the recognized text, then copy it.
+/// Optional result window: edit the recognized text, then copy it.
 struct OCRResultView: View {
     @ObservedObject var model: OCRResultModel
     @Bindable var handle: PanelHandle

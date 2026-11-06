@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// The first-launch window (TZ.md §9): what the app does, its shortcuts, permissions,
+/// The first-launch window: what the app does, its shortcuts, permissions,
 /// open-at-login. Shown once; the same permissions list lives in Settings.
 @MainActor
 public final class OnboardingWindowController {

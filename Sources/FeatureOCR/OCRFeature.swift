@@ -4,7 +4,7 @@ import Core
 import OSLog
 import SwiftUI
 
-/// Function 1 (TZ.md §5): select a screen area → recognize text → copy it.
+/// Text recognition: select a screen area → recognize text → copy it.
 public final class OCRFeature: Feature {
     public static let id: FeatureID = "ocr"
 
@@ -66,7 +66,7 @@ public final class OCRFeature: Feature {
         return .text(text)
     }
 
-    /// TZ.md §5.6: select → recognize → show the translation window right away.
+    /// Select → recognize → show the translation window right away.
     func captureAndTranslate() async -> ActionOutput {
         guard let text = await selectAndRecognize() else { return .none }
         if settings.copyWhenTranslating { context.pasteboard.writeText(text) }

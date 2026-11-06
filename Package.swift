@@ -10,7 +10,7 @@ let testSettings: [SwiftSetting] = FileManager.default.fileExists(atPath: testin
     ? [.unsafeFlags(["-plugin-path", testingPluginPath])]
     : []
 
-// Feature modules depend only on Core, never on each other (see TZ.md §12).
+// Feature modules depend only on Core, never on each other.
 let package = Package(
     name: "FastUtils",
     defaultLocalization: "ru",

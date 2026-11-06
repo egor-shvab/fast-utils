@@ -5,8 +5,8 @@ import Core
 import OSLog
 import SwiftUI
 
-/// Function 3 (TZ.md §7): remembers everything copied. Stage 5 — tracking and storage;
-/// the history window arrives in stage 6.
+/// Clipboard history: remembers everything copied, shows it in a searchable window
+/// and pastes the chosen item back.
 public final class ClipboardFeature: Feature {
     public static let id: FeatureID = "clipboard"
 
@@ -212,7 +212,7 @@ public final class ClipboardFeature: Feature {
     private var prewarmTask: Task<Void, Never>?
 
     /// The first history window after launch took 190–300 ms (cold SwiftUI, SQLite and
-    /// thumbnail caches), later ones ~60 ms (TZ.md §11: < 150 ms). Rendering the list once
+    /// thumbnail caches), later ones ~60 ms (target: under 150 ms). Rendering the list once
     /// off-screen shortly after launch moves that cost out of the first ⌥⌘V.
     private func prewarmHistoryWindow() async {
         guard let store, !Task.isCancelled else { return }
@@ -261,7 +261,7 @@ public final class ClipboardFeature: Feature {
         log.notice("History window opened in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
     }
 
-    /// Actions of other features that can work on this item (TZ.md §12.4).
+    /// Actions of other features that can work on this item.
     func contentActions(for item: ClipItem) -> [FeatureAction] {
         let kind: ActionInputKind? = switch item.kind {
         case .text, .link: .text

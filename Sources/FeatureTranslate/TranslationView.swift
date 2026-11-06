@@ -1,7 +1,7 @@
 import Core
 import SwiftUI
 
-/// The floating translation window (TZ.md §6.4).
+/// The floating translation window.
 struct TranslationView: View {
     @ObservedObject var model: TranslationViewModel
     @Bindable var handle: PanelHandle

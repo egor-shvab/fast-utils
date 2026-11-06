@@ -14,7 +14,7 @@ enum LanguageDetector {
     }
 }
 
-/// TZ.md §6.2: translate into the primary language, unless the text already is in it — then
+/// Translate into the primary language, unless the text already is in it — then
 /// into the fallback one.
 enum TranslationDirection {
     static func target(detected: String?, primary: String, fallback: String) -> String {

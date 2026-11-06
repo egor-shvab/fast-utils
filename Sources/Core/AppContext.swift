@@ -3,8 +3,7 @@ import Foundation
 import OSLog
 
 /// Shared services handed to every feature in `init(context:)`. The only way features get
-/// Core services — no singletons. New services (hotkeys, HUD, panels, pasteboard…) are added
-/// here in later stages.
+/// Core services — no singletons. New shared services are added here.
 @MainActor
 public final class AppContext {
     public let settings: SettingsStore

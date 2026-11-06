@@ -2,7 +2,7 @@ import AppKit
 import Core
 import SwiftUI
 
-/// The clipboard history window (TZ.md §7.3).
+/// The clipboard history window.
 struct HistoryView: View {
     @ObservedObject var model: HistoryViewModel
     @FocusState private var searchFocused: Bool

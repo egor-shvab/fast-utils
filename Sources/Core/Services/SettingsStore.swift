@@ -23,7 +23,7 @@ public final class SettingsStore {
     /// Namespaces that belong to FastUtils. Secrets are never here (they live in the Keychain).
     static let exportedPrefixes = ["app.", "features.", "hotkeys.", "ocr.", "translate.", "clipboard."]
 
-    /// All FastUtils settings as JSON (TZ.md §10).
+    /// All FastUtils settings as JSON.
     public func exportJSON() throws -> Data {
         let values = defaults.dictionaryRepresentation().filter { key, value in
             Self.exportedPrefixes.contains(where: key.hasPrefix) && JSONSerialization.isValidJSONObject([value])

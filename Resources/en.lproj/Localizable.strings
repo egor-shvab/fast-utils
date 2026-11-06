@@ -244,7 +244,7 @@
 "translate.key.okDeepL" = "✓ The key works. %@ of %@ characters used this month";
 "translate.key.saveFailed" = "⚠️ Couldn’t save the key to the Keychain";
 
-/* Stage 9 */
+/* Feature chains and extras */
 "ocr.action.captureAndTranslate" = "Recognize and Translate";
 "ocr.action.recognizeImage" = "Recognize Text";
 "ocr.hud.translateOff" = "Translation is off — the text was copied";
@@ -272,7 +272,7 @@
 "settings.general.restart" = "Restart";
 "settings.general.later" = "Later";
 
-/* Stage 10 */
+/* Preferences */
 "settings.general.language" = "Interface language";
 "settings.general.language.system" = "System default";
 "settings.general.menuBarIcon" = "Show icon in menu bar";

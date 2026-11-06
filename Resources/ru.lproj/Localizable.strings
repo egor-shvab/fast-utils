@@ -244,7 +244,7 @@
 "translate.key.okDeepL" = "✓ Ключ работает. Использовано %@ из %@ символов в этом месяце";
 "translate.key.saveFailed" = "⚠️ Не удалось сохранить ключ в Связку ключей";
 
-/* Stage 9 */
+/* Feature chains and extras */
 "ocr.action.captureAndTranslate" = "Распознать и перевести";
 "ocr.action.recognizeImage" = "Распознать текст";
 "ocr.hud.translateOff" = "Перевод выключен — текст скопирован";
@@ -272,7 +272,7 @@
 "settings.general.restart" = "Перезапустить";
 "settings.general.later" = "Позже";
 
-/* Stage 10 */
+/* Preferences */
 "settings.general.language" = "Язык интерфейса";
 "settings.general.language.system" = "Как в системе";
 "settings.general.menuBarIcon" = "Показывать иконку в строке меню";

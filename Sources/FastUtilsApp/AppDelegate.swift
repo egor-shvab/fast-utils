@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Re-opening the app (Finder, Spotlight) while it runs shows Settings —
-    /// the way back if the menu bar icon is hidden (TZ.md §4).
+    /// the way back if the menu bar icon is hidden.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         settingsWindow.show()
         return false

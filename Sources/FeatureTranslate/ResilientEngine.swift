@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// The last ~50 translations, so showing the same text again is instant (TZ.md §6.3).
+/// The last ~50 translations, so showing the same text again is instant.
 @MainActor
 final class TranslationCache {
     private struct Key: Hashable {

@@ -30,7 +30,7 @@ enum HistoryFilter: String, CaseIterable, Sendable {
     var title: String { String(localized: String.LocalizationValue("clipboard.filter.\(rawValue)")) }
 }
 
-/// Keyboard commands of the history window (TZ.md §7.3).
+/// Keyboard commands of the history window.
 enum HistoryCommand: Equatable {
     case up, down, paste, pastePlain, quickPaste(Int), copy, preview, togglePin, delete, escape
     /// Not ours: let the search field have it.
