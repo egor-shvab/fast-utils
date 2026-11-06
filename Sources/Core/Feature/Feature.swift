@@ -3,8 +3,8 @@ import SwiftUI
 /// A feature module (OCR, translation, clipboard history, …).
 ///
 /// To add a feature: create a `Feature*` target that depends only on `Core`, implement this
-/// protocol and add the type to `FeatureList.swift`. Core then provides the on/off switch,
-/// menu items, a settings tab and lifecycle calls. Features never import each other;
+/// protocol and add the type to `FeatureList.swift`. Core then provides a settings tab (on/off switch,
+/// shortcuts, permissions + `settingsView`), menu items and lifecycle calls. Features never import each other;
 /// they talk through `ActionRegistry` and `EventBus`.
 @MainActor
 public protocol Feature: AnyObject {
@@ -16,7 +16,9 @@ public protocol Feature: AnyObject {
     var requiredPermissions: Set<Permission> { get }
     var actions: [FeatureAction] { get }
     var menuItems: [MenuItemDescriptor] { get }
-    /// Content of the feature's tab in Settings; `nil` means no tab.
+    /// The feature's own `Section`s for its Settings tab (not a whole `Form`). Every feature
+    /// gets a tab; Core puts the on/off switch, shortcuts and permissions above these
+    /// sections and dims everything while the feature is off. `nil`: nothing extra.
     var settingsView: AnyView? { get }
 
     /// Must be cheap: every feature is created at launch, enabled or not.

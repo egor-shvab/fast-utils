@@ -18,11 +18,7 @@
 /* Settings */
 "settings.window.title" = "FastUtils Settings";
 "settings.tab.general" = "General";
-"settings.tab.shortcuts" = "Shortcuts";
-"settings.tab.permissions" = "Permissions";
 "settings.tab.about" = "About";
-"settings.general.features" = "Features";
-"settings.general.featuresFooter" = "A turned-off feature does not run, ignores its shortcuts and uses no resources.";
 "settings.about.version" = "Version %@";
 "settings.about.openData" = "Open Data Folder";
 
@@ -42,8 +38,6 @@
 "shortcut.recorder.clear" = "Remove shortcut";
 "shortcut.recorder.reset" = "Restore default";
 "shortcut.recorder.refused" = "%@ can’t be used: %@";
-"shortcut.settings.resetAll" = "Restore All Default Shortcuts";
-"shortcut.settings.footer" = "Shortcuts work in every app and any keyboard layout. Only enabled features are listed.";
 "shortcut.check.duplicate" = "already assigned to “%@”";
 "shortcut.check.reserved" = "it is a standard macOS shortcut (%@)";
 "shortcut.check.system" = "Same as a macOS system shortcut (System Settings → Keyboard → Keyboard Shortcuts). One of them may not work.";
@@ -81,8 +75,6 @@
 "permission.status.granted" = "Allowed";
 "permission.action.grant" = "Allow…";
 "permission.action.openSettings" = "Open Settings…";
-"permission.none" = "Enabled features need no permissions.";
-"permission.footer" = "Permissions needed by enabled features. The status updates automatically after you change it in System Settings.";
 
 /* Onboarding */
 "onboarding.window.title" = "Welcome";
@@ -288,3 +280,12 @@
 "settings.general.languageChanged" = "Interface language changed";
 "settings.general.languageRestart" = "The new language takes effect after FastUtils restarts.";
 "clipboard.settings.removeApp" = "Remove from exceptions";
+"settings.feature.enabled" = "Enabled";
+"settings.feature.enabledFooter" = "A disabled feature ignores its shortcuts and is hidden from the menu; clipboard history is not recorded.";
+"settings.feature.shortcuts" = "Keyboard shortcuts";
+"settings.feature.shortcutsFooter" = "Shortcuts work in every app and with any keyboard layout.";
+"settings.feature.resetShortcuts" = "Restore default shortcuts";
+"settings.feature.permissions" = "Permissions";
+"settings.general.shortcuts" = "Keyboard shortcuts";
+"settings.general.resetShortcuts" = "Restore all default shortcuts";
+"settings.general.shortcutsFooter" = "Each feature's shortcuts are set on its own tab.";

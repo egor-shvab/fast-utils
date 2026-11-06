@@ -47,23 +47,3 @@ struct PermissionRow: View {
         .padding(.vertical, 4)
     }
 }
-
-struct PermissionsSettingsView: View {
-    let registry: FeatureRegistry
-    let service: PermissionsService
-
-    var body: some View {
-        Form {
-            Section {
-                if registry.requiredPermissions.isEmpty {
-                    Text(String(localized: "permission.none")).foregroundStyle(.secondary)
-                } else {
-                    PermissionsList(permissions: registry.requiredPermissions, service: service)
-                }
-            } footer: {
-                Text(String(localized: "permission.footer")).foregroundStyle(.secondary)
-            }
-        }
-        .formStyle(.grouped)
-    }
-}

@@ -4,9 +4,7 @@ import SwiftUI
 /// Settings tabs. Feature tabs are identified by the feature id.
 public enum SettingsTab: Hashable {
     case general
-    case shortcuts
     case feature(FeatureID)
-    case permissions
     case about
 }
 

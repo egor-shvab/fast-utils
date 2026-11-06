@@ -9,55 +9,34 @@ struct SettingsView: View {
 
     var body: some View {
         TabView(selection: $navigation.selectedTab) {
-            GeneralSettingsView(registry: registry, launchAtLogin: context.launchAtLogin, hud: context.hud,
-                                settings: context.settings, preferences: context.preferences)
+            GeneralSettingsView(launchAtLogin: context.launchAtLogin, hud: context.hud,
+                                settings: context.settings, preferences: context.preferences,
+                                hotkeys: context.hotkeys)
                 .tabItem { Label(String(localized: "settings.tab.general"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
 
-            ShortcutsSettingsView(registry: registry, hotkeys: context.hotkeys)
-                .tabItem { Label(String(localized: "settings.tab.shortcuts"), systemImage: "keyboard") }
-                .tag(SettingsTab.shortcuts)
-
-            ForEach(featureTabs, id: \.id) { tab in
-                tab.view
-                    .tabItem { Label(tab.title, systemImage: tab.icon) }
-                    .tag(SettingsTab.feature(tab.id))
+            ForEach(registry.features.map { FeatureRegistry.id(of: $0) }, id: \.self) { id in
+                let feature = registry.feature(id)!
+                FeatureSettingsView(featureID: id, registry: registry, hotkeys: context.hotkeys,
+                                    permissions: context.permissions)
+                    .tabItem { Label(feature.title, systemImage: feature.icon) }
+                    .tag(SettingsTab.feature(id))
             }
-
-            PermissionsSettingsView(registry: registry, service: context.permissions)
-                .tabItem { Label(String(localized: "settings.tab.permissions"), systemImage: "lock.shield") }
-                .tag(SettingsTab.permissions)
 
             AboutView(storage: context.storage)
                 .tabItem { Label(String(localized: "settings.tab.about"), systemImage: "info.circle") }
                 .tag(SettingsTab.about)
         }
-        .frame(width: 620, height: 480)
-    }
-
-    /// Tabs of enabled features that provide a settings view.
-    private var featureTabs: [FeatureTab] {
-        registry.features.compactMap { feature in
-            let id = FeatureRegistry.id(of: feature)
-            guard registry.isEnabled(id), let view = feature.settingsView else { return nil }
-            return FeatureTab(id: id, title: feature.title, icon: feature.icon, view: view)
-        }
-    }
-
-    private struct FeatureTab {
-        let id: FeatureID
-        let title: String
-        let icon: String
-        let view: AnyView
+        .frame(width: 620, height: 560)
     }
 }
 
 struct GeneralSettingsView: View {
-    let registry: FeatureRegistry
     let launchAtLogin: LaunchAtLogin
     @Bindable var hud: HUDService
     let settings: SettingsStore
     @Bindable var preferences: AppPreferences
+    let hotkeys: HotkeyService
 
     var body: some View {
         Form {
@@ -96,20 +75,11 @@ struct GeneralSettingsView: View {
                 Text(String(localized: "settings.general.notifications"))
             }
             Section {
-                ForEach(registry.features.map { FeatureRegistry.id(of: $0) }, id: \.self) { id in
-                    let feature = registry.feature(id)!
-                    Toggle(isOn: Binding(
-                        get: { registry.isEnabled(id) },
-                        set: { newValue in Task { await registry.setEnabled(newValue, for: id) } }
-                    )) {
-                        Label(feature.title, systemImage: feature.icon)
-                    }
-                }
+                Button(String(localized: "settings.general.resetShortcuts")) { hotkeys.resetAll() }
             } header: {
-                Text(String(localized: "settings.general.features"))
+                Text(String(localized: "settings.general.shortcuts"))
             } footer: {
-                Text(String(localized: "settings.general.featuresFooter"))
-                    .foregroundStyle(.secondary)
+                Text(String(localized: "settings.general.shortcutsFooter")).foregroundStyle(.secondary)
             }
             Section {
                 HStack {

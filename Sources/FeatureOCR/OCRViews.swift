@@ -7,7 +7,7 @@ struct OCRSettingsView: View {
     private let supported = TextRecognizer.supportedLanguages()
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 Toggle(String(localized: "ocr.settings.autoDetect"), isOn: $settings.autoDetectLanguage)
                 ForEach(supported, id: \.self) { code in
@@ -45,7 +45,6 @@ struct OCRSettingsView: View {
                 Text(String(localized: "ocr.settings.result"))
             }
         }
-        .formStyle(.grouped)
     }
 
     /// Checked languages keep their priority order; at least one stays checked.

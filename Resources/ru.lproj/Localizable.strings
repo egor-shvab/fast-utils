@@ -18,11 +18,7 @@
 /* Settings */
 "settings.window.title" = "Настройки FastUtils";
 "settings.tab.general" = "Основные";
-"settings.tab.shortcuts" = "Сочетания клавиш";
-"settings.tab.permissions" = "Разрешения";
 "settings.tab.about" = "О программе";
-"settings.general.features" = "Функции";
-"settings.general.featuresFooter" = "Выключенная функция не работает, не реагирует на сочетания клавиш и не потребляет ресурсы.";
 "settings.about.version" = "Версия %@";
 "settings.about.openData" = "Открыть папку с данными";
 
@@ -42,8 +38,6 @@
 "shortcut.recorder.clear" = "Удалить сочетание";
 "shortcut.recorder.reset" = "Вернуть по умолчанию";
 "shortcut.recorder.refused" = "%@ нельзя назначить: %@";
-"shortcut.settings.resetAll" = "Вернуть все сочетания по умолчанию";
-"shortcut.settings.footer" = "Сочетания работают во всех приложениях и в любой раскладке. Здесь показаны только включённые функции.";
 "shortcut.check.duplicate" = "уже назначено действию «%@»";
 "shortcut.check.reserved" = "это стандартное сочетание macOS (%@)";
 "shortcut.check.system" = "Совпадает с системным сочетанием macOS (Системные настройки → Клавиатура → Сочетания клавиш). Одно из них может не сработать.";
@@ -81,8 +75,6 @@
 "permission.status.granted" = "Разрешено";
 "permission.action.grant" = "Разрешить…";
 "permission.action.openSettings" = "Открыть настройки…";
-"permission.none" = "Включённым функциям разрешения не нужны.";
-"permission.footer" = "Показаны разрешения, нужные включённым функциям. Статус обновляется автоматически после изменения в Системных настройках.";
 
 /* Onboarding */
 "onboarding.window.title" = "Добро пожаловать";
@@ -288,3 +280,12 @@
 "settings.general.languageChanged" = "Язык интерфейса изменён";
 "settings.general.languageRestart" = "Новый язык применится после перезапуска FastUtils.";
 "clipboard.settings.removeApp" = "Убрать из исключений";
+"settings.feature.enabled" = "Включено";
+"settings.feature.enabledFooter" = "Выключенная функция не реагирует на сочетания клавиш и не показывается в меню, а история буфера не записывается.";
+"settings.feature.shortcuts" = "Сочетания клавиш";
+"settings.feature.shortcutsFooter" = "Сочетания работают во всех приложениях и в любой раскладке.";
+"settings.feature.resetShortcuts" = "Вернуть сочетания по умолчанию";
+"settings.feature.permissions" = "Разрешения";
+"settings.general.shortcuts" = "Сочетания клавиш";
+"settings.general.resetShortcuts" = "Вернуть все сочетания по умолчанию";
+"settings.general.shortcutsFooter" = "Сочетания каждой функции настраиваются на её вкладке.";

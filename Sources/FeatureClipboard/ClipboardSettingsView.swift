@@ -22,7 +22,7 @@ struct ClipboardSettingsView: View {
     @StateObject private var stats = ClipboardStatsModel()
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 Picker(String(localized: "clipboard.settings.windowPosition"), selection: $settings.windowPosition) {
                     Text(String(localized: "clipboard.settings.position.mouse")).tag(ClipboardSettings.WindowPosition.mouse)
@@ -98,7 +98,6 @@ struct ClipboardSettingsView: View {
                 Text(String(localized: "clipboard.settings.data"))
             }
         }
-        .formStyle(.grouped)
         .task { await stats.load(from: feature.store) }
     }
 

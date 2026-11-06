@@ -76,7 +76,7 @@ struct TranslateSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        Group {
             Section {
                 languagePicker("translate.settings.primary", selection: $settings.primaryLanguage)
                 languagePicker("translate.settings.fallback", selection: $settings.fallbackLanguage)
@@ -113,7 +113,6 @@ struct TranslateSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
         .task { await list.load() }
     }
 
