@@ -146,11 +146,11 @@ struct ClipboardSettingsView: View {
         alert.addButton(withTitle: String(localized: "clipboard.clear.all"))
         alert.addButton(withTitle: String(localized: "clipboard.clear.cancel"))
         let response = alert.runModal()
-        guard response != .alertThirdButtonReturn, let store = feature.store else { return }
+        guard response != .alertThirdButtonReturn else { return }
         let keepPinned = response == .alertFirstButtonReturn
         Task {
-            try? await store.clear(keepPinned: keepPinned)
-            await stats.load(from: store)
+            await feature.clearHistory(keepPinned: keepPinned)
+            await stats.load(from: feature.store)
         }
     }
 }

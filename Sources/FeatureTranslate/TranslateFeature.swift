@@ -51,8 +51,12 @@ public final class TranslateFeature: Feature {
     }
 
     public var settingsView: AnyView? {
-        AnyView(TranslateSettingsView(settings: settings, keys: APIKeysModel(secrets: context.secrets, http: http)))
+        AnyView(TranslateSettingsView(settings: settings, keys: keys))
     }
+
+    /// One model for the feature's lifetime: Settings rebuild `settingsView` often, and each new
+    /// model would read both keys from the Keychain again.
+    private lazy var keys = APIKeysModel(secrets: context.secrets, http: http)
 
     // MARK: Actions
 
@@ -66,6 +70,11 @@ public final class TranslateFeature: Feature {
         }
         if settings.translateSelection, let selected = await context.paste.copySelection() {
             show(selected)
+            return
+        }
+        // A password on the clipboard is never read, let alone sent to a translation service.
+        if context.pasteboard.containsConcealed {
+            context.hud.show(String(localized: "translate.hud.concealed"), icon: "lock.fill", style: .info)
             return
         }
         if let text = context.pasteboard.readText(), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

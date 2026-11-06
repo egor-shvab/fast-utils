@@ -1,4 +1,5 @@
 import CoreGraphics
+import ScreenCaptureKit
 import Testing
 @testable import Core
 
@@ -21,5 +22,17 @@ struct ScreenCropTests {
             imageSize: CGSize(width: 1920, height: 1080)
         )
         #expect(rect == CGRect(x: 100, y: 880, width: 200, height: 100))
+    }
+}
+
+struct ScreenCaptureErrorTests {
+    @Test func onlyPermissionProblemsAskForPermission() {
+        let declined = SCStreamError(.userDeclined)
+        #expect(ScreenCaptureError.classify(declined, preflight: true) == .notPermitted)
+        #expect(ScreenCaptureError.classify(CocoaError(.fileReadUnknown), preflight: false) == .notPermitted)
+        if case .failed = ScreenCaptureError.classify(CocoaError(.fileReadUnknown), preflight: true) {} else {
+            Issue.record("a transient failure must not be reported as a missing permission")
+        }
+        #expect(ScreenCaptureError.classify(ScreenCaptureError.noDisplays, preflight: true) == .noDisplays)
     }
 }

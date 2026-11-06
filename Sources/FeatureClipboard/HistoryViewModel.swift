@@ -75,9 +75,17 @@ final class HistoryViewModel: ObservableObject {
     /// The item shown in the preview overlay (fully loaded).
     @Published private(set) var preview: ClipItem?
     @Published private(set) var hasLoaded = false
+    /// The store may hold more rows than are loaded: scrolling to the end loads the next page.
+    @Published private(set) var canLoadMore = false
+
+    /// Rows per page: the first screen, ⌘1…⌘9 and a good scroll, without loading thousands of
+    /// rows on every ⌥⌘V (the history may keep up to 5 000). Search always looks at the whole store.
+    static let defaultPageSize = 200
 
     private let store: HistoryStore
-    private let limit: Int
+    private let pageSize: Int
+    private var limit: Int
+    private var isLoadingMore = false
     private var reloadTask: Task<Void, Never>?
     private var sidePreviewTask: Task<Void, Never>?
 
@@ -88,10 +96,13 @@ final class HistoryViewModel: ObservableObject {
     var onRunAction: ((ClipItem, FeatureAction) -> Void)?
     var onCopy: ((ClipItem) -> Void)?
     var onClose: (() -> Void)?
+    /// Pinning or deleting failed; the feature shows an error HUD.
+    var onError: (() -> Void)?
 
-    init(store: HistoryStore, limit: Int) {
+    init(store: HistoryStore, pageSize: Int = HistoryViewModel.defaultPageSize) {
         self.store = store
-        self.limit = limit
+        self.pageSize = pageSize
+        limit = pageSize
     }
 
     var pinnedItems: [ClipItem] { items.filter(\.isPinned) }
@@ -114,13 +125,25 @@ final class HistoryViewModel: ObservableObject {
         let loaded = (try? await store.items(kind: filter.kind, query: needle, pinnedOnly: filter == .pinned, limit: limit)) ?? []
         guard needle == query, filter == self.filter else { return }  // a newer request is coming
         items = loaded
+        canLoadMore = loaded.count >= limit
         if selectedID == nil || !loaded.contains(where: { $0.id == selectedID }) {
             selectedID = loaded.first?.id
         }
         hasLoaded = true
     }
 
+    /// The next page, appended below the loaded rows.
+    func loadMore() async {
+        guard canLoadMore, !isLoadingMore else { return }
+        isLoadingMore = true
+        defer { isLoadingMore = false }
+        limit += pageSize
+        await reload()
+    }
+
+    /// A new search or filter starts from the first page again.
     private func scheduleReload() {
+        limit = pageSize
         reloadTask?.cancel()
         reloadTask = Task { [weak self] in await self?.reload() }
     }
@@ -193,13 +216,22 @@ final class HistoryViewModel: ObservableObject {
     }
 
     func setPinned(_ item: ClipItem, _ pinned: Bool) async {
-        try? await store.setPinned(item.id, pinned)
+        do {
+            try await store.setPinned(item.id, pinned)
+        } catch {
+            onError?()
+        }
         await reload()
     }
 
     func delete(_ item: ClipItem) async {
         let index = ordered.firstIndex { $0.id == item.id }
-        try? await store.delete(item.id)
+        do {
+            try await store.delete(item.id)
+        } catch {
+            onError?()
+            return
+        }
         if preview?.id == item.id { preview = nil }
         await reload()
         // Keep the selection at the same position.

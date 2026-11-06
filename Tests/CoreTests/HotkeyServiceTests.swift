@@ -128,6 +128,19 @@ struct HotkeyServiceTests {
         #expect(fake.registered.count == 2)
     }
 
+    @Test func secondRecorderStopsTheFirstAndKeepsHotkeysPaused() async {
+        await registry.startEnabledFeatures()
+        var firstStopped = false
+        hotkeys.beginRecording { firstStopped = true }
+        hotkeys.beginRecording {}
+        #expect(firstStopped)
+        #expect(hotkeys.isPaused)
+        #expect(fake.registered.isEmpty)
+        hotkeys.endRecording()
+        #expect(!hotkeys.isPaused)
+        #expect(fake.registered.count == 2)
+    }
+
     @Test func resetRestoresDefault() async {
         await registry.startEnabledFeatures()
         hotkeys.setShortcut(ctrlOptK, for: "hk.one")

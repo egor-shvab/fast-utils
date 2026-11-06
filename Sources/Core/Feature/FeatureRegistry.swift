@@ -64,13 +64,6 @@ public final class FeatureRegistry {
         }
     }
 
-    /// Stops all running features (app termination).
-    public func stopAll() async {
-        for feature in features where isEnabled(Self.id(of: feature)) {
-            await deactivate(feature)
-        }
-    }
-
     private func activate(_ feature: any Feature) async {
         let id = Self.id(of: feature)
         guard !enabledIDs.contains(id) else { return }
@@ -79,7 +72,6 @@ public final class FeatureRegistry {
         context.hotkeys.activate(feature.actions.map(\.id))
         await feature.start()
         context.logger("features").notice("Enabled \(id.rawValue, privacy: .public)")
-        context.events.publish(FeatureStateChanged(feature: id, isEnabled: true))
     }
 
     private func deactivate(_ feature: any Feature) async {
@@ -90,6 +82,5 @@ public final class FeatureRegistry {
         context.actions.unregisterAll(for: id)
         await feature.stop()
         context.logger("features").notice("Disabled \(id.rawValue, privacy: .public)")
-        context.events.publish(FeatureStateChanged(feature: id, isEnabled: false))
     }
 }

@@ -13,21 +13,13 @@ struct TranslationView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     content
-                    DisclosureGroup(String(localized: "translate.window.original"), isExpanded: $model.showsOriginal) {
-                        Text(model.original)
-                            .textSelection(.enabled)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, 4)
-                    }
-                    .font(.callout)
+                    original
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             footer
         }
         .padding(16)
-        .padding(.top, 8)
         .background(model.engine.hostView)
         // Apple may show its language download prompt during a translation; the panel must not
         // close when that prompt takes focus.
@@ -83,6 +75,32 @@ struct TranslationView: View {
                 .opacity(model.isLoading ? 0.5 : 1)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// "Original" with a chevron. Not a `DisclosureGroup`: on macOS only its small arrow is
+    /// clickable, here the whole label is.
+    private var original: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) { model.showsOriginal.toggle() }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .rotationEffect(.degrees(model.showsOriginal ? 90 : 0))
+                    Text(String(localized: "translate.window.original"))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            if model.showsOriginal {
+                Text(model.original)
+                    .textSelection(.enabled)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .font(.callout)
     }
 
     private var footer: some View {

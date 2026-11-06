@@ -5,10 +5,17 @@ import ApplicationServices
 /// games, some web views) do not report it — callers fall back to the mouse pointer.
 @MainActor
 public enum TextCaret {
+    /// How long one Accessibility request may wait for the frontmost app. These calls are
+    /// synchronous on the main thread; with the default (~6 s) a hung app froze FastUtils and the
+    /// history window did not open. A responsive app answers in a few milliseconds.
+    static let messagingTimeout: Float = 0.25
+
     /// The caret rect in AppKit global coordinates (bottom-left origin), or `nil`.
     public static func rect() -> CGRect? {
         guard AXIsProcessTrusted() else { return nil }
         let system = AXUIElementCreateSystemWide()
+        // Set on the system-wide element, the timeout applies to every element we query.
+        AXUIElementSetMessagingTimeout(system, messagingTimeout)
         var focusedValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(system, kAXFocusedUIElementAttribute as CFString, &focusedValue) == .success,
               let focusedValue, CFGetTypeID(focusedValue) == AXUIElementGetTypeID()

@@ -69,7 +69,11 @@ final class ResilientEngine: TranslationEngine {
         if let cached = cache.value(engine: cacheKey, request: request) { return cached }
         var result = try await translateUncached(request)
         if result.engineName == nil { result.engineName = name }
-        cache.store(result, engine: cacheKey, request: request)
+        // A fallback result is not what the chosen engine would give: once it is reachable
+        // again, the same text must go to it, not come from the cache.
+        if result.fallbackReason == nil {
+            cache.store(result, engine: cacheKey, request: request)
+        }
         return result
     }
 

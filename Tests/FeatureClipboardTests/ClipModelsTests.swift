@@ -41,14 +41,19 @@ struct ClipModelsTests {
         #expect(a.hash != ClipContent(kind: .link, text: "x").hash)
     }
 
-    @Test func filterSkipsPasswordsAndExcludedApps() {
-        #expect(!ClipboardFilter.allowsReading(types: ["public.utf8-plain-text", "org.nspasteboard.ConcealedType"],
-                                               source: "com.example", excludedApps: [], ignoreConcealed: true))
-        #expect(ClipboardFilter.allowsReading(types: ["org.nspasteboard.ConcealedType"],
-                                              source: nil, excludedApps: [], ignoreConcealed: false))
-        #expect(!ClipboardFilter.allowsReading(types: ["public.utf8-plain-text"], source: "com.apple.keychainaccess",
-                                               excludedApps: Set(ClipboardFilter.defaultExcludedApps), ignoreConcealed: true))
-        #expect(ClipboardFilter.allowsReading(types: ["public.utf8-plain-text"], source: "com.apple.Notes",
-                                              excludedApps: Set(ClipboardFilter.defaultExcludedApps), ignoreConcealed: true))
+    @Test func oversizedTextDropsFormattingThenIsSkipped() {
+        let html = Data(repeating: 0x41, count: 600)
+        let formatted = ClipContent(kind: .text, text: "короткий", rtf: Data(repeating: 0x42, count: 600), html: html)
+        let fitted = formatted.limited(to: 1_000)
+        #expect(fitted?.text == "короткий")
+        #expect(fitted?.rtf == nil && fitted?.html == nil)
+        #expect(fitted?.hash == formatted.hash)  // the same item for de-duplication
+
+        let small = ClipContent(kind: .text, text: "x", html: Data(repeating: 0x41, count: 10))
+        #expect(small.limited(to: 1_000) == small)
+
+        #expect(ClipContent(kind: .text, text: String(repeating: "я", count: 600)).limited(to: 1_000) == nil)  // 1 200 bytes
+        let image = ClipContent(kind: .image, image: Data(repeating: 0, count: 5_000))
+        #expect(image.limited(to: 1_000) == image)
     }
 }

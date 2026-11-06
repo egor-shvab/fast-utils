@@ -15,10 +15,10 @@ final class ClipboardSettings {
     var maxAgeDays: Int { didSet { store.set(maxAgeDays, for: "maxAgeDays"); onLimitsChanged?() } }
     var maxImageMB: Int { didSet { store.set(maxImageMB, for: "maxImageMB") } }
     var storeText: Bool { didSet { store.set(storeText, for: "storeText") } }
-    var storeImages: Bool { didSet { store.set(storeImages, for: "storeImages") } }
+    var storeImages: Bool { didSet { store.set(storeImages, for: "storeImages"); onMonitorSettingsChanged?() } }
     var storeFiles: Bool { didSet { store.set(storeFiles, for: "storeFiles") } }
-    var ignoreConcealed: Bool { didSet { store.set(ignoreConcealed, for: "ignoreConcealed") } }
-    var excludedApps: [String] { didSet { store.set(excludedApps, for: "excludedApps") } }
+    var ignoreConcealed: Bool { didSet { store.set(ignoreConcealed, for: "ignoreConcealed"); onMonitorSettingsChanged?() } }
+    var excludedApps: [String] { didSet { store.set(excludedApps, for: "excludedApps"); onMonitorSettingsChanged?() } }
     var pausedIndefinitely: Bool { didSet { store.set(pausedIndefinitely, for: "pausedIndefinitely") } }
     var windowPosition: WindowPosition { didSet { store.set(windowPosition.rawValue, for: "windowPosition") } }
     /// `false` = "copy only, don't paste".
@@ -29,7 +29,18 @@ final class ClipboardSettings {
 
     enum WindowPosition: String, CaseIterable, Sendable { case mouse, center, textCursor }
 
+    /// Password managers and Keychain: nothing copied there is kept by default.
+    static let defaultExcludedApps = [
+        "com.apple.keychainaccess",
+        "com.apple.Passwords",
+        "com.1password.1password",
+        "com.agilebits.onepassword7",
+        "com.bitwarden.desktop",
+    ]
+
     @ObservationIgnored var onLimitsChanged: (() -> Void)?
+    /// Privacy and kinds that decide what Core's clipboard monitor reads at all.
+    @ObservationIgnored var onMonitorSettingsChanged: (() -> Void)?
     @ObservationIgnored private let store: ScopedSettings
 
     init(store: ScopedSettings) {
@@ -41,7 +52,7 @@ final class ClipboardSettings {
         storeImages = store.value("storeImages", default: true)
         storeFiles = store.value("storeFiles", default: true)
         ignoreConcealed = store.value("ignoreConcealed", default: true)
-        excludedApps = store.value("excludedApps", default: ClipboardFilter.defaultExcludedApps)
+        excludedApps = store.value("excludedApps", default: Self.defaultExcludedApps)
         pausedIndefinitely = store.value("pausedIndefinitely", default: false)
         windowPosition = WindowPosition(rawValue: store.value("windowPosition", default: "")) ?? .mouse
         autoPaste = store.value("autoPaste", default: true)

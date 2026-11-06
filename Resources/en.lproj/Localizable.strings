@@ -102,6 +102,7 @@
 
 /* OCR */
 "ocr.hud.noPermission" = "Screen Recording permission is needed — allow it in System Settings";
+"ocr.hud.captureFailed" = "Couldn’t capture the screen — please try again";
 "ocr.hud.failed" = "Couldn’t recognize text";
 "ocr.hud.notFound" = "No text found";
 "ocr.settings.languages" = "Recognition Languages";
@@ -130,7 +131,7 @@
 "clipboard.hud.resumed" = "History recording resumed";
 "clipboard.hud.storeFailed" = "Couldn’t open clipboard history";
 "clipboard.settings.storage" = "Storage";
-"clipboard.settings.storageFooter" = "Pinned items are never removed by count or age.";
+"clipboard.settings.storageFooter" = "Pinned items are never removed by count or age. Text over 1 MB is not kept; large formatted fragments keep only their plain text.";
 "clipboard.settings.maxItems" = "Maximum items";
 "clipboard.settings.maxAge" = "Keep";
 "clipboard.settings.maxImage" = "Maximum image size";
@@ -146,7 +147,7 @@
 "clipboard.settings.privacy" = "Privacy";
 "clipboard.settings.ignoreConcealed" = "Don’t keep passwords from password managers";
 "clipboard.settings.addApp" = "Add App…";
-"clipboard.settings.privacyFooter" = "Nothing copied in the listed apps is kept. Password managers mark passwords with a special flag — such items are skipped while the switch is on (recommended).";
+"clipboard.settings.privacyFooter" = "Nothing copied in the listed apps is kept. The app is recognized by a mark it adds itself, or else as the active app — switching apps right after copying may attribute the item to the wrong one. Password managers mark passwords with a special flag — such items are skipped while the switch is on (recommended).";
 "clipboard.settings.data" = "Data";
 "clipboard.settings.items" = "Items in history";
 "clipboard.settings.diskUsage" = "Disk usage";
@@ -210,6 +211,7 @@
 "translate.error.empty" = "Nothing to translate";
 "translate.error.generic" = "Couldn’t translate";
 "translate.hud.noText" = "There’s no text on the clipboard";
+"translate.hud.concealed" = "The clipboard holds a password — not translating it";
 "translate.hud.copied" = "Translation copied";
 "translate.confirm.title" = "Translate %d characters?";
 "translate.confirm.message" = "The text is long; translation may take a while.";

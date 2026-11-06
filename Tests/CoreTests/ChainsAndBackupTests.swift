@@ -56,6 +56,38 @@ struct CopySelectionTests {
         #expect(board.string(forType: .string) == "было в буфере")
     }
 
+    @Test func nonTextSelectionStillRestoresClipboard() async {
+        let custom = NSPasteboard.PasteboardType("com.example.private-format")
+        let item = NSPasteboardItem()
+        item.setString("было в буфере", forType: .string)
+        item.setData(Data([7, 7]), forType: custom)
+        board.clearContents()
+        board.writeObjects([item])
+        keys.onSend = { [board] key in
+            guard key == kVK_ANSI_C else { return }
+            board.clearContents()
+            board.setData(Data([0x89, 0x50, 0x4E, 0x47]), forType: .png)  // the app copied an image
+        }
+
+        #expect(await context.paste.copySelection() == nil)
+        #expect(board.string(forType: .string) == "было в буфере")
+        #expect(board.data(forType: custom) == Data([7, 7]))
+        #expect(board.data(forType: .png) == nil)
+    }
+
+    @Test func concealedSelectionIsNotReturned() async {
+        keys.onSend = { [board] key in
+            guard key == kVK_ANSI_C else { return }
+            let item = NSPasteboardItem()
+            item.setString("hunter2", forType: .string)
+            item.setString("", forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+            board.clearContents()
+            board.writeObjects([item])
+        }
+        #expect(await context.paste.copySelection() == nil)
+        #expect(board.string(forType: .string) == "было в буфере")
+    }
+
     @Test func noAccessibilityNoAttempt() async {
         keys.canSend = false
         #expect(await context.paste.copySelection() == nil)

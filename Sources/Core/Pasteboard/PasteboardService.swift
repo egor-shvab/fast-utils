@@ -16,6 +16,9 @@ public struct PasteboardSnapshot: Sendable {
     public var sourceBundleID: String?
     public var sourceName: String?
     public var date: Date
+    /// The contents were not read (a password, or an app excluded from history): only `types`
+    /// and the source are known.
+    public var contentsWithheld = false
 
     public init(changeCount: Int = 0, types: [String] = [], string: String? = nil, rtf: Data? = nil,
                 html: Data? = nil, image: Data? = nil, fileURLs: [URL] = [], sourceBundleID: String? = nil,
@@ -56,9 +59,14 @@ public final class PasteboardService {
     private var monitorUsers = 0
     private var timer: Timer?
 
-    /// Decides, from the type list alone, whether the contents may be read at all
-    /// (passwords are skipped without reading their data). Set by the history feature.
-    public var shouldReadContents: (@MainActor (_ types: [String], _ sourceBundleID: String?) -> Bool)?
+    /// Apps whose copies the monitor does not read (history exclusions), by bundle id.
+    public var excludedApps: Set<String> = []
+    /// `true` lets the monitor read concealed items (the user turned off skipping passwords
+    /// in history). `readText()` / `readImage()` refuse them regardless.
+    public var monitorReadsConcealed = false
+    /// `false` when history keeps no images: the monitor then skips image data, which can be
+    /// tens of megabytes (a screenshot as TIFF) and is read on the main thread.
+    public var monitorReadsImages = true
 
     public init(pasteboard: NSPasteboard = .general, events: EventBus? = nil) {
         self.pasteboard = pasteboard
@@ -98,18 +106,21 @@ public final class PasteboardService {
         noteOwnWrite(recordInHistory: recordInHistory)
     }
 
-    public func clear() {
-        pasteboard.clearContents()
-        noteOwnWrite(recordInHistory: false)
+    /// The clipboard holds a password or other data marked as private.
+    public var containsConcealed: Bool {
+        (pasteboard.pasteboardItems ?? []).contains { PasteboardPrivacy.isConcealed($0.types.map(\.rawValue)) }
     }
 
+    /// Clipboard text; `nil` when there is none or it is concealed (a password).
     public func readText() -> String? {
-        pasteboard.string(forType: .string)
+        guard !containsConcealed else { return nil }
+        return pasteboard.string(forType: .string)
     }
 
-    /// An image on the clipboard (screenshot, copied picture), if any.
+    /// An image on the clipboard (screenshot, copied picture); `nil` when concealed.
     public func readImage() -> CGImage? {
-        guard let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff),
+        guard !containsConcealed,
+              let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff),
               let source = CGImageSourceCreateWithData(data as CFData, nil)
         else { return nil }
         return CGImageSourceCreateImageAtIndex(source, 0, nil)
@@ -119,26 +130,81 @@ public final class PasteboardService {
         if !recordInHistory { transientChangeCounts.insert(pasteboard.changeCount) }
     }
 
+    // MARK: Backup
+
+    /// Everything on the clipboard — every item with every type — to put back exactly as it was.
+    /// Holds private data too, so its contents are never inspected or logged.
+    public struct Backup: Sendable {
+        fileprivate let items: [[Representation]]
+        fileprivate struct Representation: Sendable {
+            let type: String
+            let data: Data
+        }
+    }
+
+    public func backup() -> Backup {
+        Backup(items: (pasteboard.pasteboardItems ?? []).map { item in
+            item.types.compactMap { type in
+                item.data(forType: type).map { Backup.Representation(type: type.rawValue, data: $0) }
+            }
+        })
+    }
+
+    /// Puts a backup back. A technical write: history ignores it.
+    public func restore(_ backup: Backup) {
+        pasteboard.clearContents()
+        let items = backup.items.filter { !$0.isEmpty }.map { representations in
+            let item = NSPasteboardItem()
+            for representation in representations {
+                item.setData(representation.data, forType: NSPasteboard.PasteboardType(representation.type))
+            }
+            return item
+        }
+        if !items.isEmpty { pasteboard.writeObjects(items) }
+        noteOwnWrite(recordInHistory: false)
+    }
+
     // MARK: Reading
 
-    /// `bypassingFilter`: read everything (used to restore the clipboard exactly as it was).
-    public func readSnapshot(bypassingFilter: Bool = false) -> PasteboardSnapshot? {
+    /// The first item for history. Concealed items and copies from excluded apps come back with
+    /// `contentsWithheld` and no data: the decision uses only the type list and the source.
+    func readSnapshot() -> PasteboardSnapshot? {
         guard let item = pasteboard.pasteboardItems?.first else { return nil }
         let types = item.types.map(\.rawValue)
-        let source = NSWorkspace.shared.frontmostApplication
+        let source = Self.source(of: item)
         var snapshot = PasteboardSnapshot(
             changeCount: pasteboard.changeCount, types: types,
-            sourceBundleID: source?.bundleIdentifier, sourceName: source?.localizedName
+            sourceBundleID: source.bundleID, sourceName: source.name
         )
-        if !bypassingFilter, let shouldReadContents, !shouldReadContents(types, snapshot.sourceBundleID) {
+        let concealed = PasteboardPrivacy.isConcealed(types) && !monitorReadsConcealed
+        if concealed || source.bundleID.map(excludedApps.contains) == true {
+            snapshot.contentsWithheld = true
             return snapshot
         }
         snapshot.fileURLs = (pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
         snapshot.string = item.string(forType: .string)
         snapshot.rtf = item.data(forType: .rtf)
         snapshot.html = item.data(forType: .html)
-        snapshot.image = item.data(forType: .png) ?? item.data(forType: .tiff)
+        if monitorReadsImages {
+            snapshot.image = item.data(forType: .png) ?? item.data(forType: .tiff)
+        }
         return snapshot
+    }
+
+    /// The app that wrote the item: its own `org.nspasteboard.source` mark when present,
+    /// otherwise the frontmost app now (polling notices a change up to 0.5 s late, so a quick
+    /// app switch right after copying can attribute it to the wrong app).
+    private static func source(of item: NSPasteboardItem) -> (bundleID: String?, name: String?) {
+        let marked = item.string(forType: NSPasteboard.PasteboardType(PasteboardPrivacy.sourceType))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let marked, !marked.isEmpty {
+            let name = NSRunningApplication.runningApplications(withBundleIdentifier: marked).first?.localizedName
+                ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: marked)
+                    .map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") }
+            return (marked, name)
+        }
+        let frontmost = NSWorkspace.shared.frontmostApplication
+        return (frontmost?.bundleIdentifier, frontmost?.localizedName)
     }
 
     // MARK: Monitoring

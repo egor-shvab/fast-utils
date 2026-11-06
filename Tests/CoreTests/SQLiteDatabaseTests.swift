@@ -48,4 +48,21 @@ struct SQLiteDatabaseTests {
         #expect(rows.count == 200)
         #expect(elapsed < .milliseconds(50), "search took \(elapsed)")
     }
+
+    @Test func migrationsRunOnceAndInOrder() throws {
+        let db = try SQLiteDatabase(path: ":memory:")
+        #expect(try db.schemaVersion == 0)
+        let v1 = ["CREATE TABLE t (a INTEGER)"]
+        try db.migrate(v1)
+        try db.migrate(v1)  // already applied: no "table t already exists"
+        #expect(try db.schemaVersion == 1)
+
+        try db.migrate(v1 + ["ALTER TABLE t ADD COLUMN b TEXT"])
+        #expect(try db.schemaVersion == 2)
+        try db.query("INSERT INTO t (a, b) VALUES (1, 'x')")
+
+        // A failing migration leaves the version where it was.
+        #expect(throws: SQLiteError.self) { try db.migrate(v1 + ["ALTER TABLE t ADD COLUMN b TEXT", "nonsense"]) }
+        #expect(try db.schemaVersion == 2)
+    }
 }

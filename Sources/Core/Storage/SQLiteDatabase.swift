@@ -75,6 +75,24 @@ public final class SQLiteDatabase {
 
     public var lastInsertRowID: Int64 { sqlite3_last_insert_rowid(handle) }
 
+    /// Schema version (`PRAGMA user_version`): how many migrations have been applied.
+    public var schemaVersion: Int {
+        get throws { try query("PRAGMA user_version").first?.int("user_version") ?? 0 }
+    }
+
+    /// Brings the schema up to date: runs the migrations after `schemaVersion`, each in its own
+    /// transaction together with the version bump. Only append to the list — never edit or
+    /// reorder migrations that may have run already. A database from a newer build is left as is.
+    public func migrate(_ migrations: [String]) throws {
+        let current = try schemaVersion
+        for (index, sql) in migrations.enumerated() where index >= current {
+            try transaction {
+                try execute(sql)
+                try execute("PRAGMA user_version = \(index + 1)")
+            }
+        }
+    }
+
     public func transaction<T>(_ body: () throws -> T) throws -> T {
         try execute("BEGIN")
         do {

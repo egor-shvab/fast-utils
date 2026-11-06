@@ -30,6 +30,7 @@ public final class ClipboardFeature: Feature {
         log = context.logger(Self.id.rawValue)
         settings = ClipboardSettings(store: context.settings.scoped(Self.id))
         settings.onLimitsChanged = { [weak self] in Task { await self?.applyLimits() } }
+        settings.onMonitorSettingsChanged = { [weak self] in self?.applyMonitorSettings() }
     }
 
     public var title: String { String(localized: "feature.clipboard.title") }
@@ -88,13 +89,7 @@ public final class ClipboardFeature: Feature {
             context.hud.show(String(localized: "clipboard.hud.storeFailed"), style: .error)
             return
         }
-        context.pasteboard.shouldReadContents = { [weak self] types, source in
-            guard let self else { return false }
-            return ClipboardFilter.allowsReading(
-                types: types, source: source,
-                excludedApps: Set(settings.excludedApps), ignoreConcealed: settings.ignoreConcealed
-            )
-        }
+        applyMonitorSettings()
         let stream = context.events.stream(of: ClipboardChanged.self)
         eventsTask = Task { [weak self] in
             for await change in stream {
@@ -112,7 +107,9 @@ public final class ClipboardFeature: Feature {
 
     public func stop() async {
         context.pasteboard.stopMonitoring()
-        context.pasteboard.shouldReadContents = nil
+        context.pasteboard.excludedApps = []
+        context.pasteboard.monitorReadsConcealed = false
+        context.pasteboard.monitorReadsImages = true
         eventsTask?.cancel()
         eventsTask = nil
         prewarmTask?.cancel()
@@ -126,11 +123,15 @@ public final class ClipboardFeature: Feature {
     func handle(_ change: ClipboardChanged) async {
         guard change.recordInHistory, pause == .none, let store else { return }
         let snapshot = change.snapshot
-        guard ClipboardFilter.allowsReading(
-            types: snapshot.types, source: snapshot.sourceBundleID,
-            excludedApps: Set(settings.excludedApps), ignoreConcealed: settings.ignoreConcealed
-        ), let content = ClipContentFactory.content(from: snapshot), settings.allows(content.kind)
+        // Core did not read a password or a copy from an excluded app; there is nothing to store.
+        guard !snapshot.contentsWithheld,
+              let extracted = ClipContentFactory.content(from: snapshot), settings.allows(extracted.kind),
+              extracted.kind != .image || extracted.image != nil
         else { return }
+        guard let content = extracted.limited(to: ClipContent.maxTextBytes) else {
+            log.notice("Skipped text of \(extracted.byteSize) bytes: over the limit")
+            return
+        }
         if let image = content.image, image.count > settings.maxImageMB * 1_048_576 {
             log.notice("Skipped image of \(image.count) bytes: over the limit")
             return
@@ -143,6 +144,13 @@ public final class ClipboardFeature: Feature {
         } catch {
             log.error("Cannot store clipboard item: \(String(describing: error), privacy: .public)")
         }
+    }
+
+    /// History settings → Core, which decides what to read before reading anything.
+    func applyMonitorSettings() {
+        context.pasteboard.excludedApps = Set(settings.excludedApps)
+        context.pasteboard.monitorReadsConcealed = !settings.ignoreConcealed
+        context.pasteboard.monitorReadsImages = settings.storeImages
     }
 
     func applyLimits() async {
@@ -217,7 +225,7 @@ public final class ClipboardFeature: Feature {
     private func prewarmHistoryWindow() async {
         guard let store, !Task.isCancelled else { return }
         let started = ContinuousClock.now
-        let model = HistoryViewModel(store: store, limit: settings.maxItems)
+        let model = HistoryViewModel(store: store)
         await model.reload()
         let hosting = NSHostingView(rootView: HistoryView(model: model))
         hosting.frame = CGRect(x: 0, y: 0, width: 440, height: 540)
@@ -231,11 +239,15 @@ public final class ClipboardFeature: Feature {
             context.panels.close(Self.panelID)
             return
         }
-        guard let store else { return }
+        guard let store else {
+            // The history could not be opened at launch: say so instead of doing nothing.
+            context.hud.show(String(localized: "clipboard.hud.storeFailed"), style: .error)
+            return
+        }
         let started = ContinuousClock.now
         // Remember where the user was: the paste goes there.
         let targetApp = NSWorkspace.shared.frontmostApplication
-        let model = HistoryViewModel(store: store, limit: settings.maxItems)
+        let model = HistoryViewModel(store: store)
         await model.reload()  // so the very first frame already shows the list
 
         model.onPaste = { [weak self] item, plain in
@@ -245,6 +257,7 @@ public final class ClipboardFeature: Feature {
             Task { await self?.copy(item) }
         }
         model.onClose = { [weak self] in self?.context.panels.close(Self.panelID) }
+        model.onError = { [weak self] in self?.showActionFailed() }
         model.previewOnSelect = settings.previewOnSelect
         model.contentActions = { [weak self] item in self?.contentActions(for: item) ?? [] }
         model.onRunAction = { [weak self] item, action in
@@ -259,6 +272,24 @@ public final class ClipboardFeature: Feature {
         }
         installKeyMonitor(for: handle.window, model: model)
         log.notice("History window opened in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
+    }
+
+    /// Deletes history items (Settings → Clear). `false` and an error HUD when it failed.
+    @discardableResult
+    func clearHistory(keepPinned: Bool) async -> Bool {
+        guard let store else { return false }
+        do {
+            try await store.clear(keepPinned: keepPinned)
+            return true
+        } catch {
+            log.error("Clear history failed: \(String(describing: error), privacy: .public)")
+            showActionFailed()
+            return false
+        }
+    }
+
+    private func showActionFailed() {
+        context.hud.show(String(localized: "clipboard.hud.actionFailed"), style: .error)
     }
 
     /// Actions of other features that can work on this item.

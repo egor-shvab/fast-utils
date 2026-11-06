@@ -18,7 +18,8 @@ public final class HotkeyService {
 
     /// While `true` (the user is recording a shortcut), all hot keys are released so the
     /// pressed combination reaches the recorder instead of firing an action.
-    public var isPaused = false {
+    /// Set through `beginRecording` / `endRecording`.
+    public internal(set) var isPaused = false {
         didSet {
             guard isPaused != oldValue else { return }
             for id in active { reregister(id) }
@@ -66,6 +67,26 @@ public final class HotkeyService {
             active.remove(id)
             registrar.unregister(id)
         }
+    }
+
+    // MARK: Recording
+
+    @ObservationIgnored private var stopCurrentRecording: (() -> Void)?
+
+    /// A shortcut recorder starts listening. Only one records at a time: the previous one is
+    /// stopped first, so its end cannot bring hot keys back while this one still records.
+    public func beginRecording(stop: @escaping () -> Void) {
+        let previous = stopCurrentRecording
+        stopCurrentRecording = nil
+        previous?()
+        stopCurrentRecording = stop
+        isPaused = true
+    }
+
+    /// The recorder stopped (a shortcut was set, Esc, or it went away).
+    public func endRecording() {
+        stopCurrentRecording = nil
+        isPaused = false
     }
 
     // MARK: Queries

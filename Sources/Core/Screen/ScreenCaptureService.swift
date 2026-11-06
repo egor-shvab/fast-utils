@@ -10,9 +10,19 @@ public struct ScreenSnapshot: @unchecked Sendable {
     public let displayID: CGDirectDisplayID
 }
 
-public enum ScreenCaptureError: Error {
+public enum ScreenCaptureError: Error, Equatable {
     case notPermitted
     case noDisplays
+    /// Anything else (a transient ScreenCaptureKit failure): asking for permission would not help.
+    case failed(String)
+
+    /// The user declined, or the app has no Screen Recording access. `preflight` is
+    /// `CGPreflightScreenCaptureAccess()`: it covers errors that do not say "declined".
+    static func classify(_ error: Error, preflight: Bool) -> ScreenCaptureError {
+        if let error = error as? ScreenCaptureError { return error }
+        if (error as? SCStreamError)?.code == .userDeclined || !preflight { return .notPermitted }
+        return .failed(String(describing: error))
+    }
 }
 
 /// Snapshots of all displays via ScreenCaptureKit (`CGWindowListCreateImage` is deprecated
@@ -22,12 +32,15 @@ public final class ScreenCaptureService {
     public init() {}
 
     public func captureAllScreens() async throws -> [ScreenSnapshot] {
-        let content: SCShareableContent
         do {
-            content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            return try await capture()
         } catch {
-            throw ScreenCaptureError.notPermitted
+            throw ScreenCaptureError.classify(error, preflight: CGPreflightScreenCaptureAccess())
         }
+    }
+
+    private func capture() async throws -> [ScreenSnapshot] {
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         let ownApps = content.applications.filter { $0.processID == ProcessInfo.processInfo.processIdentifier }
 
         var result: [ScreenSnapshot] = []

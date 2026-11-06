@@ -46,7 +46,7 @@ struct HistoryViewModelTests {
 
     init() throws {
         store = try HistoryStore(directory: temporaryDirectory())
-        model = HistoryViewModel(store: store, limit: 100)
+        model = HistoryViewModel(store: store, pageSize: 100)
     }
 
     private func fill(_ texts: [String]) async throws {
@@ -129,14 +129,38 @@ struct HistoryViewModelTests {
         let start = ContinuousClock.now
         await model.reload()
         let elapsed = ContinuousClock.now - start
-        #expect(model.items.count == 100)  // the model's limit
-        let big = HistoryViewModel(store: store, limit: 1_000)
+        #expect(model.items.count == 100)  // one page
+        let big = HistoryViewModel(store: store, pageSize: 1_000)
         let bigStart = ContinuousClock.now
         await big.reload()
         let bigElapsed = ContinuousClock.now - bigStart
         #expect(big.items.count == 1_000)
         #expect(elapsed < .milliseconds(50), "100 items: \(elapsed)")
         #expect(bigElapsed < .milliseconds(100), "1000 items: \(bigElapsed)")
+    }
+
+    @Test func scrollingLoadsMorePagesAndSearchStartsOver() async throws {
+        try await fill((0..<250).map { "запись \($0)" })
+        #expect(model.items.count == 100)
+        #expect(model.canLoadMore)
+
+        await model.loadMore()
+        #expect(model.items.count == 200)
+        #expect(model.items.first?.text == "запись 249")  // still newest first, the page appended below
+        await model.loadMore()
+        #expect(model.items.count == 250)
+        #expect(!model.canLoadMore)
+        await model.loadMore()  // nothing left: no-op
+        #expect(model.items.count == 250)
+
+        // Search covers the whole store, not only the loaded pages, and starts from page one.
+        model.query = "запись 3"
+        await model.reload()
+        #expect(model.items.count == 11)  // 3, 30…39
+        #expect(!model.canLoadMore)
+        model.query = ""
+        await model.reload()
+        #expect(model.items.count == 100)
     }
 
     @Test func previewLoadsFullText() async throws {

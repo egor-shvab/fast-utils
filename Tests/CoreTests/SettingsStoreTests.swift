@@ -39,3 +39,18 @@ struct SettingsStoreTests {
         #expect(context.secrets.secret(for: "deepl") == nil)
     }
 }
+
+@MainActor
+struct KeychainSecretStoreTests {
+    /// A throwaway service in the login keychain; removed at the end.
+    @Test func updatesInPlaceAndDeletes() throws {
+        let store = KeychainSecretStore(service: "com.yahor.FastUtils.tests.\(UUID().uuidString)")
+        defer { try? store.setSecret(nil, for: "key") }
+        try store.setSecret("first", for: "key")
+        try store.setSecret("second", for: "key")  // existing item: updated, not deleted and re-added
+        #expect(store.secret(for: "key") == "second")
+        try store.setSecret(nil, for: "key")
+        #expect(store.secret(for: "key") == nil)
+        try store.setSecret(nil, for: "key")  // deleting a missing item is fine
+    }
+}

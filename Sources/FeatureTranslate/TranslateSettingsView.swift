@@ -20,6 +20,9 @@ final class APIKeysModel: ObservableObject {
 
     private let secrets: any SecretStore
     private let http: any HTTPClient
+    private var pendingSave: Task<Void, Never>?
+    /// Saving waits for a pause in typing: one Keychain write per edit, not per keystroke.
+    var saveDelay: Duration = .milliseconds(600)
 
     init(secrets: any SecretStore, http: any HTTPClient) {
         self.secrets = secrets
@@ -28,7 +31,19 @@ final class APIKeysModel: ObservableObject {
         googleKey = secrets.secret(for: TranslateSettings.secretKey(for: .google)) ?? ""
     }
 
+    /// After the user stops typing for `saveDelay`. Submit and "Check" save right away.
+    func scheduleSave(_ engine: TranslateSettings.EngineKind) {
+        pendingSave?.cancel()
+        pendingSave = Task { [weak self, saveDelay] in
+            try? await Task.sleep(for: saveDelay)
+            guard !Task.isCancelled else { return }
+            self?.save(engine)
+        }
+    }
+
     func save(_ engine: TranslateSettings.EngineKind) {
+        pendingSave?.cancel()
+        pendingSave = nil
         let value = (engine == .deepl ? deeplKey : googleKey).trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             try secrets.setSecret(value.isEmpty ? nil : value, for: TranslateSettings.secretKey(for: engine))
@@ -67,12 +82,13 @@ final class APIKeysModel: ObservableObject {
 
 struct TranslateSettingsView: View {
     @Bindable var settings: TranslateSettings
-    @StateObject var keys: APIKeysModel
+    /// Owned by the feature (it outlives the Settings window, so a pending save still happens).
+    @ObservedObject var keys: APIKeysModel
     @StateObject private var list = LanguageListModel()
 
     init(settings: TranslateSettings, keys: APIKeysModel) {
         self.settings = settings
-        _keys = StateObject(wrappedValue: keys)
+        self.keys = keys
     }
 
     var body: some View {
@@ -124,7 +140,7 @@ struct TranslateSettingsView: View {
                 SecureField("", text: binding, prompt: Text(String(localized: "translate.key.placeholder")))
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { keys.save(engine) }
-                    .onChange(of: binding.wrappedValue) { keys.save(engine) }
+                    .onChange(of: binding.wrappedValue) { keys.scheduleSave(engine) }
                 Button(String(localized: "translate.key.check")) { keys.check(engine) }
                     .disabled(keys.checking != nil)
             }

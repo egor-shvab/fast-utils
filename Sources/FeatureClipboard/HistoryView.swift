@@ -83,6 +83,12 @@ struct HistoryView: View {
                         sectionHeader("clipboard.window.recent")
                     }
                     rows(model.filter == .pinned ? model.pinnedItems : model.recentItems)
+                    if model.canLoadMore {
+                        // Shown when the list is scrolled (or the selection moved) to the end.
+                        Color.clear
+                            .frame(height: 1)
+                            .onAppear { Task { await model.loadMore() } }
+                    }
                 }
                 .padding(.horizontal, 6)
                 .padding(.vertical, 6)

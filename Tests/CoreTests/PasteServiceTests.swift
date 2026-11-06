@@ -41,14 +41,19 @@ struct PasteServiceTests {
     }
 
     @Test func restoresPreviousClipboardWithoutRecordingIt() async {
+        let custom = NSPasteboard.PasteboardType("com.example.private-format")
+        let item = NSPasteboardItem()
+        item.setString("было", forType: .string)
+        item.setData(Data([5]), forType: custom)
         board.clearContents()
-        board.setString("было", forType: .string)
+        board.writeObjects([item])
         context.pasteboard.checkForChanges()
         var events = context.events.stream(of: ClipboardChanged.self).makeAsyncIterator()
 
         await context.paste.paste(PasteboardSnapshot(string: "вставили"), into: nil, restorePrevious: true)
 
         #expect(board.string(forType: .string) == "было")
+        #expect(board.data(forType: custom) == Data([5]))  // formats only FastUtils does not know survive too
         context.pasteboard.checkForChanges()
         #expect(await events.next()?.recordInHistory == false)
     }

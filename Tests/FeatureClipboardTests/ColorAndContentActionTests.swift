@@ -79,7 +79,7 @@ struct HistoryContentActionTests {
                                 date: Date(timeIntervalSince1970: 1))
         _ = try await store.add(ClipContent(kind: .text, text: "вторая"), sourceBundleID: nil, sourceName: nil,
                                 date: Date(timeIntervalSince1970: 2))
-        let model = HistoryViewModel(store: store, limit: 10)
+        let model = HistoryViewModel(store: store, pageSize: 10)
         model.previewOnSelect = true
         await model.reload()
         _ = model.handle(.down)

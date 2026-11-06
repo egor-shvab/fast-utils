@@ -222,13 +222,8 @@ final class GoogleEngine: TranslationEngine {
         } catch {
             throw OnlineTranslationError.from(error)
         }
-        switch response.statusCode {
-        case 200..<300: break
-        case 400 where String(decoding: data, as: UTF8.self).contains("API key not valid"):
-            throw OnlineTranslationError.invalidKey
-        case 401, 403: throw OnlineTranslationError.invalidKey
-        case 429: throw OnlineTranslationError.quotaExceeded
-        default: throw OnlineTranslationError.server(response.statusCode)
+        if !(200..<300).contains(response.statusCode) {
+            throw Self.error(status: response.statusCode, body: data)
         }
 
         struct Response: Decodable {
@@ -248,6 +243,43 @@ final class GoogleEngine: TranslationEngine {
             source: decoded.data.translations.first?.detectedSourceLanguage ?? request.source,
             target: request.target
         )
+    }
+
+    /// Google reports an exhausted quota as 403 as well as 429, so the status alone would call it
+    /// an invalid key. The reason comes from the body: `error.errors[].reason` (v2) or
+    /// `error.details[].reason` / `error.status` (newer format).
+    static func error(status: Int, body: Data) -> OnlineTranslationError {
+        let reasons = errorReasons(in: body)
+        let message = String(decoding: body, as: UTF8.self)
+        if reasons.contains("API_KEY_INVALID") || reasons.contains("keyInvalid") || message.contains("API key not valid") {
+            return .invalidKey
+        }
+        if !reasons.isDisjoint(with: ["dailyLimitExceeded", "quotaExceeded", "dailyLimitExceededUnreg", "RESOURCE_EXHAUSTED"]) {
+            return .quotaExceeded
+        }
+        if !reasons.isDisjoint(with: ["userRateLimitExceeded", "rateLimitExceeded", "RATE_LIMIT_EXCEEDED"]) {
+            return .rateLimited
+        }
+        switch status {
+        case 401, 403: return .invalidKey
+        case 429: return .quotaExceeded
+        default: return .server(status)
+        }
+    }
+
+    private static func errorReasons(in body: Data) -> Set<String> {
+        struct Body: Decodable {
+            struct Failure: Decodable {
+                struct Reason: Decodable { let reason: String? }
+                let status: String?
+                let errors: [Reason]?
+                let details: [Reason]?
+            }
+            let error: Failure
+        }
+        guard let failure = try? JSONDecoder().decode(Body.self, from: body).error else { return [] }
+        let listed = (failure.errors ?? []) + (failure.details ?? [])
+        return Set(listed.compactMap(\.reason) + [failure.status].compactMap { $0 })
     }
 
     static func code(_ language: String) -> String {

@@ -129,6 +129,9 @@ public final class PanelService {
         effect.state = .active
         let hosting = NSHostingView(rootView: content(handle))
         hosting.translatesAutoresizingMaskIntoConstraints = false
+        // The title bar is hidden but still there: without this SwiftUI insets the content by
+        // its height and every panel gets ~28 pt of empty space at the top.
+        hosting.safeAreaRegions = []
         effect.addSubview(hosting)
         NSLayoutConstraint.activate([
             hosting.leadingAnchor.constraint(equalTo: effect.leadingAnchor),

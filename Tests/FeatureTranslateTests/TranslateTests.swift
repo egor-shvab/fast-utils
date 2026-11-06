@@ -141,6 +141,33 @@ struct TranslateFeatureTests {
         #expect(!context.panels.isPresented(TranslateFeature.panelID))
     }
 
+    @Test func passwordOnClipboardIsNotTranslated() async {
+        await registry.startEnabledFeatures()
+        let feature = registry.feature("translate") as! TranslateFeature
+        feature.settings.autoCopy = true
+        let item = NSPasteboardItem()
+        item.setString("hunter2", forType: .string)
+        item.setString("", forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+        board.clearContents()
+        board.writeObjects([item])
+
+        try? await context.actions.perform("translate.clipboard")
+
+        #expect(!context.panels.isPresented(TranslateFeature.panelID))
+        #expect(feature.cache.count == 0)
+        // The clipboard is untouched: still the password item, not a "translation" of it.
+        #expect(board.pasteboardItems?.first?.types.contains(NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")) == true)
+    }
+
+    @Test func plainTextOnClipboardOpensWindow() async {
+        await registry.startEnabledFeatures()
+        board.clearContents()
+        board.setString("Hello, world", forType: .string)
+        try? await context.actions.perform("translate.clipboard")
+        #expect(context.panels.isPresented(TranslateFeature.panelID))
+        context.panels.close(TranslateFeature.panelID)
+    }
+
     @Test func appleSupportsRussianAndEnglish() async {
         let languages = await AppleLanguages.supported()
         #expect(languages.contains("ru"))

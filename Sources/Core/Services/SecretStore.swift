@@ -32,14 +32,19 @@ public final class KeychainSecretStore: SecretStore {
         return String(data: data, encoding: .utf8)
     }
 
+    /// Updates the item in place (or adds it), so a failed write never loses the stored value.
     public func setSecret(_ value: String?, for key: String) throws {
-        let deleteStatus = SecItemDelete(baseQuery(key) as CFDictionary)
-        guard deleteStatus == errSecSuccess || deleteStatus == errSecItemNotFound else {
-            throw KeychainError(status: deleteStatus)
+        guard let value else {
+            let status = SecItemDelete(baseQuery(key) as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else { throw KeychainError(status: status) }
+            return
         }
-        guard let value else { return }
+        let data = Data(value.utf8)
+        let updateStatus = SecItemUpdate(baseQuery(key) as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+        if updateStatus == errSecSuccess { return }
+        guard updateStatus == errSecItemNotFound else { throw KeychainError(status: updateStatus) }
         var item = baseQuery(key)
-        item[kSecValueData as String] = Data(value.utf8)
+        item[kSecValueData as String] = data
         item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         let status = SecItemAdd(item as CFDictionary, nil)
         guard status == errSecSuccess else { throw KeychainError(status: status) }

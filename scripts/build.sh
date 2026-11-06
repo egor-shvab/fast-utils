@@ -27,7 +27,12 @@ done
 
 echo "▸ swift build ($CONFIG, arm64)"
 # CLT has no XCTest/Developer frameworks dir; the linker warns about it — harmless.
-swift build -c "$CONFIG" --arch arm64 2>&1 | grep -v "search path '/Library/Developer/CommandLineTools/Developer" || true
+# The filter must not hide a failed build: otherwise the previous binary would be packaged.
+set +e
+swift build -c "$CONFIG" --arch arm64 2>&1 | grep -v "search path '/Library/Developer/CommandLineTools/Developer"
+BUILD_STATUS=${PIPESTATUS[0]}
+set -e
+[[ $BUILD_STATUS -eq 0 ]] || { echo "✘ swift build failed (exit $BUILD_STATUS)" >&2; exit "$BUILD_STATUS"; }
 BIN_DIR="$(swift build -c "$CONFIG" --arch arm64 --show-bin-path)"
 [[ -x "$BIN_DIR/$APP_NAME" ]] || { echo "Build failed: $BIN_DIR/$APP_NAME not found" >&2; exit 1; }
 

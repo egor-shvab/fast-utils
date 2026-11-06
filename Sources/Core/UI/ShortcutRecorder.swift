@@ -104,16 +104,21 @@ struct ShortcutRecorder: View {
         state.error = nil
         state.isRecording = true
         state.liveModifiers = []
-        hotkeys.isPaused = true
+        hotkeys.beginRecording { [state] in Self.stop(state, hotkeys: nil) }
         state.monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
             handle(event)
         }
     }
 
     private func stopRecording() {
+        Self.stop(state, hotkeys: hotkeys)
+    }
+
+    /// `hotkeys == nil`: stopped by another recorder that is taking over (hot keys stay paused).
+    private static func stop(_ state: RecorderState, hotkeys: HotkeyService?) {
         if let monitor = state.monitor { NSEvent.removeMonitor(monitor) }
         state.monitor = nil
-        if state.isRecording { hotkeys.isPaused = false }
+        if state.isRecording { hotkeys?.endRecording() }
         state.isRecording = false
         state.liveModifiers = []
     }

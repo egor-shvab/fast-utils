@@ -23,30 +23,38 @@ actor HistoryStore {
         imagesURL = directory.appending(path: "images", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: imagesURL, withIntermediateDirectories: true)
         db = try SQLiteDatabase(path: directory.appending(path: "history.sqlite").path)
-        try db.execute("""
-            CREATE TABLE IF NOT EXISTS items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                hash TEXT NOT NULL UNIQUE,
-                kind TEXT NOT NULL,
-                text TEXT,
-                search TEXT NOT NULL DEFAULT '',
-                rtf BLOB,
-                html BLOB,
-                image_file TEXT,
-                thumb_file TEXT,
-                image_w INTEGER,
-                image_h INTEGER,
-                files TEXT,
-                source_id TEXT,
-                source_name TEXT,
-                created REAL NOT NULL,
-                updated REAL NOT NULL,
-                pinned INTEGER NOT NULL DEFAULT 0,
-                size INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE INDEX IF NOT EXISTS items_order ON items (pinned, updated DESC);
-            """)
+        try db.migrate(Self.migrations)
     }
+
+    /// Schema changes in order. Append new ones (e.g. `ALTER TABLE items ADD COLUMN …`);
+    /// never edit a migration that may already have run on the user's database.
+    static let migrations = [
+        // 1: the original schema. `IF NOT EXISTS`: databases created before versioning
+        // (version 0) already have it.
+        """
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hash TEXT NOT NULL UNIQUE,
+            kind TEXT NOT NULL,
+            text TEXT,
+            search TEXT NOT NULL DEFAULT '',
+            rtf BLOB,
+            html BLOB,
+            image_file TEXT,
+            thumb_file TEXT,
+            image_w INTEGER,
+            image_h INTEGER,
+            files TEXT,
+            source_id TEXT,
+            source_name TEXT,
+            created REAL NOT NULL,
+            updated REAL NOT NULL,
+            pinned INTEGER NOT NULL DEFAULT 0,
+            size INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS items_order ON items (pinned, updated DESC);
+        """,
+    ]
 
     // MARK: Adding
 
@@ -70,6 +78,21 @@ actor HistoryStore {
             size += saved.bytes
         }
 
+        do {
+            try insert(content, hash: hash, imageFile: imageFile, thumbFile: thumbFile, imageSize: imageSize,
+                       size: size, sourceBundleID: sourceBundleID, sourceName: sourceName, date: date)
+        } catch {
+            // Do not leave image files that no row refers to.
+            for name in [imageFile, thumbFile].compactMap({ $0 }) {
+                try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
+            }
+            throw error
+        }
+        return .inserted(try item(db.lastInsertRowID)!)
+    }
+
+    private func insert(_ content: ClipContent, hash: String, imageFile: String?, thumbFile: String?, imageSize: CGSize?,
+                        size: Int, sourceBundleID: String?, sourceName: String?, date: Date) throws {
         try db.query("""
             INSERT INTO items (hash, kind, text, search, rtf, html, image_file, thumb_file, image_w, image_h, files,
                                source_id, source_name, created, updated, size)
@@ -83,7 +106,6 @@ actor HistoryStore {
                 SQLiteValue(sourceBundleID), SQLiteValue(sourceName),
                 .real(date.timeIntervalSince1970), .real(date.timeIntervalSince1970), .integer(Int64(size)),
             ])
-        return .inserted(try item(db.lastInsertRowID)!)
     }
 
     // MARK: Reading

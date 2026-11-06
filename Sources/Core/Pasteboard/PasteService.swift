@@ -61,8 +61,9 @@ public final class PasteService {
         self.keystrokes = keystrokes
     }
 
-    /// Copies the selected text of the frontmost app (⌘C) and puts the previous clipboard back.
-    /// Leaves no trace in clipboard history. `nil` when nothing is selected or there is no
+    /// Copies the selected text of the frontmost app (⌘C) and puts the previous clipboard back
+    /// exactly as it was (every item and type). Leaves no trace in clipboard history. `nil` when
+    /// nothing is selected, the selection is not text or is concealed, or there is no
     /// Accessibility permission.
     public func copySelection() async -> String? {
         guard keystrokes.canSend else { return nil }
@@ -73,7 +74,7 @@ public final class PasteService {
         pasteboard.suspendMonitoring()
         defer { pasteboard.resumeMonitoring() }
 
-        let previous = pasteboard.readSnapshot(bypassingFilter: true)
+        let previous = pasteboard.backup()
         let before = pasteboard.changeCount
         keystrokes.send(keyCode: kVK_ANSI_C, modifiers: .maskCommand)
 
@@ -82,14 +83,9 @@ public final class PasteService {
             try? await Task.sleep(for: .milliseconds(20))
             if pasteboard.changeCount != before {
                 text = pasteboard.readText()
+                // Whatever the app put there (text, an image, a file), the user's clipboard comes back.
+                pasteboard.restore(previous)
                 break
-            }
-        }
-        if text != nil {
-            if let previous {
-                pasteboard.write(previous, recordInHistory: false)
-            } else {
-                pasteboard.clear()
             }
         }
         return text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? text : nil
@@ -101,7 +97,7 @@ public final class PasteService {
     /// - Parameters:
     ///   - targetApp: the app that was frontmost before our panel appeared.
     ///   - autoPaste: `false` = only copy ("copy, don't paste" setting).
-    ///   - restorePrevious: put the previous clipboard back after pasting.
+    ///   - restorePrevious: put the previous clipboard back (all items and types) after pasting.
     @discardableResult
     public func paste(
         _ content: PasteboardSnapshot,
@@ -110,7 +106,7 @@ public final class PasteService {
         autoPaste: Bool = true,
         restorePrevious: Bool = false
     ) async -> Outcome {
-        let previous = restorePrevious ? pasteboard.readSnapshot(bypassingFilter: true) : nil
+        let previous = restorePrevious ? pasteboard.backup() : nil
         pasteboard.write(content, plainTextOnly: plainText)
 
         guard autoPaste else { return .copied(missingPermission: false) }
@@ -127,7 +123,7 @@ public final class PasteService {
 
         if let previous {
             try? await Task.sleep(for: restoreDelay)
-            pasteboard.write(previous, recordInHistory: false)
+            pasteboard.restore(previous)
         }
         return .pasted
     }

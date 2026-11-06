@@ -32,5 +32,7 @@ let package = Package(
         .testTarget(name: "FeatureOCRTests", dependencies: ["FeatureOCR"], swiftSettings: testSettings),
         .testTarget(name: "FeatureTranslateTests", dependencies: ["FeatureTranslate"], swiftSettings: testSettings),
         .testTarget(name: "FeatureClipboardTests", dependencies: ["FeatureClipboard"], swiftSettings: testSettings),
+        // Whole-app checks: links between features, localization of every source file.
+        .testTarget(name: "AppTests", dependencies: ["FastUtilsApp"], swiftSettings: testSettings),
     ]
 )

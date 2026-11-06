@@ -99,6 +99,5 @@ struct OCRResultView: View {
             }
         }
         .padding(16)
-        .padding(.top, 8)
     }
 }

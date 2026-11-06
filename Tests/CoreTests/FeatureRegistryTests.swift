@@ -71,16 +71,6 @@ struct FeatureRegistryTests {
         #expect((registry.feature("alpha") as? AlphaFeature)?.starts == 1)
     }
 
-    @Test func publishesStateChanges() async {
-        let registry = makeRegistry()
-        await registry.startEnabledFeatures()
-        var events = context.events.stream(of: FeatureStateChanged.self).makeAsyncIterator()
-
-        await registry.setEnabled(false, for: "beta")
-
-        #expect(await events.next() == FeatureStateChanged(feature: "beta", isEnabled: false))
-    }
-
     @Test func crossFeatureActionCall() async throws {
         let registry = makeRegistry()
         await registry.startEnabledFeatures()

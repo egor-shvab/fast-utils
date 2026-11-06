@@ -100,10 +100,15 @@ public final class OCRFeature: Feature {
                 return nil
             }
             selection = selected
-        } catch {
-            log.error("Screen capture failed: \(String(describing: error), privacy: .public)")
+        } catch ScreenCaptureError.notPermitted {
+            log.error("Screen capture: no Screen Recording permission")
             context.permissions.request(.screenRecording)
             context.hud.show(String(localized: "ocr.hud.noPermission"), style: .error)
+            return nil
+        } catch {
+            // Not a permission problem: sending the user to System Settings would not help.
+            log.error("Screen capture failed: \(String(describing: error), privacy: .public)")
+            context.hud.show(String(localized: "ocr.hud.captureFailed"), style: .error)
             return nil
         }
 

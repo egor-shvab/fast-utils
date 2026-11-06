@@ -105,6 +105,19 @@ struct GoogleTests {
         }
     }
 
+    @Test func quotaAndRateLimitAreNotCalledInvalidKey() {
+        let daily = Data(#"{"error":{"code":403,"message":"Daily Limit Exceeded","errors":[{"reason":"dailyLimitExceeded"}]}}"#.utf8)
+        #expect(GoogleEngine.error(status: 403, body: daily) == .quotaExceeded)
+        let exhausted = Data(#"{"error":{"code":429,"status":"RESOURCE_EXHAUSTED","details":[{"reason":"RATE_LIMIT_EXCEEDED"}]}}"#.utf8)
+        #expect(GoogleEngine.error(status: 429, body: exhausted) == .quotaExceeded)
+        let rate = Data(#"{"error":{"code":403,"errors":[{"reason":"userRateLimitExceeded"}]}}"#.utf8)
+        #expect(GoogleEngine.error(status: 403, body: rate) == .rateLimited)
+        let badKey = Data(#"{"error":{"code":400,"status":"INVALID_ARGUMENT","details":[{"reason":"API_KEY_INVALID"}]}}"#.utf8)
+        #expect(GoogleEngine.error(status: 400, body: badKey) == .invalidKey)
+        #expect(GoogleEngine.error(status: 403, body: Data("forbidden".utf8)) == .invalidKey)
+        #expect(GoogleEngine.error(status: 500, body: Data()) == .server(500))
+    }
+
     @Test func chineseCodes() {
         #expect(GoogleEngine.code("zh") == "zh-CN")
         #expect(GoogleEngine.code("zh-Hant") == "zh-TW")
@@ -175,6 +188,21 @@ struct ResilientEngineTests {
         #expect(cache.count == 1)
     }
 
+    @Test func fallbackResultIsNotCached() async throws {
+        let online = FakeEngine()
+        online.failure = OnlineTranslationError.offline
+        let engine = ResilientEngine(primary: online, apple: FakeEngine(), fallbackToApple: true, cache: cache, cacheKey: "deepl")
+        let request = TranslationRequest(text: "Hello", source: "en", target: "ru")
+        _ = try await engine.translate(request)
+        #expect(cache.count == 0)
+
+        // The network is back: the same text goes to the chosen engine.
+        online.failure = nil
+        let result = try await engine.translate(request)
+        #expect(online.requests.count == 2)
+        #expect(result.fallbackReason == nil)
+    }
+
     @Test func cacheKeepsOnlyTheNewest() {
         let small = TranslationCache(capacity: 2)
         for i in 0..<3 {
@@ -214,5 +242,24 @@ struct EngineSelectionTests {
         let status = try #require(keys.status[.deepl])
         #expect(!status.hasPrefix("⚠️"))
         #expect(http.requests.first?.url?.lastPathComponent == "usage")
+    }
+}
+
+@MainActor
+struct APIKeySavingTests {
+    @Test func typingSavesOnceAfterAPause() async throws {
+        let context = AppContext.testing()
+        let keys = APIKeysModel(secrets: context.secrets, http: FakeHTTP())
+        keys.saveDelay = .milliseconds(30)
+        for prefix in ["a", "ab", "abc"] {
+            keys.deeplKey = prefix
+            keys.scheduleSave(.deepl)
+        }
+        #expect(context.secrets.secret(for: TranslateSettings.secretKey(for: .deepl)) == nil)  // still typing
+        // Wait for the result, not a fixed time: under a parallel test run the save can be late.
+        for _ in 0..<200 where context.secrets.secret(for: TranslateSettings.secretKey(for: .deepl)) == nil {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(context.secrets.secret(for: TranslateSettings.secretKey(for: .deepl)) == "abc")
     }
 }

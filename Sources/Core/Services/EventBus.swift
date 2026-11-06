@@ -3,15 +3,9 @@ import Foundation
 /// Marker for events sent through `EventBus`. Features may declare their own event types.
 public protocol AppEvent: Sendable {}
 
-/// A feature was turned on or off.
-public struct FeatureStateChanged: AppEvent, Equatable {
-    public let feature: FeatureID
-    public let isEnabled: Bool
-}
-
 /// Typed publish/subscribe between Core and features.
 ///
-///     for await change in context.events.stream(of: FeatureStateChanged.self) { … }
+///     for await change in context.events.stream(of: ClipboardChanged.self) { … }
 ///
 /// Each subscriber gets its own stream; cancelling the consuming task unsubscribes.
 @MainActor
