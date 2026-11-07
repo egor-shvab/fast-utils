@@ -39,10 +39,10 @@ public final class MenuBarController: NSObject, NSMenuDelegate {
 
         var hasFeatureItems = false
         for feature in registry.features where registry.isEnabled(FeatureRegistry.id(of: feature)) {
-            if hasFeatureItems && feature.menuItems.contains(where: { !$0.submenu.isEmpty || $0.actionID == nil }) {
-                menu.addItem(.separator())
-            }
-            for descriptor in feature.menuItems {
+            let items = feature.menuItems
+            // One group per feature, so it is clear which items belong together.
+            if hasFeatureItems && !items.isEmpty { menu.addItem(.separator()) }
+            for descriptor in items {
                 menu.addItem(makeItem(descriptor))
                 hasFeatureItems = true
             }
