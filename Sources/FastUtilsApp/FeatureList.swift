@@ -1,5 +1,6 @@
 import Core
 import FeatureClipboard
+import FeatureColor
 import FeatureOCR
 import FeatureText
 import FeatureTranslate
@@ -11,4 +12,5 @@ let featureTypes: [any Feature.Type] = [
     TranslateFeature.self,
     ClipboardFeature.self,
     TextFeature.self,
+    ColorFeature.self,
 ]

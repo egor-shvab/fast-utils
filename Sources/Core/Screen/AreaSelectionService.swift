@@ -111,24 +111,6 @@ private final class SelectionSession {
     }
 }
 
-private final class OverlayWindow: NSPanel {
-    init(snapshot: ScreenSnapshot) {
-        super.init(contentRect: snapshot.frame, styleMask: [.borderless, .nonactivatingPanel],
-                   backing: .buffered, defer: false)
-        level = .screenSaver
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
-        isOpaque = true
-        backgroundColor = .black
-        hasShadow = false
-        hidesOnDeactivate = false
-        acceptsMouseMovedEvents = true
-        animationBehavior = .none
-        setFrame(snapshot.frame, display: false)
-    }
-
-    override var canBecomeKey: Bool { true }
-}
-
 private final class OverlayView: NSView {
     var onFinish: ((CGRect) -> Void)?
     var onCancel: (() -> Void)?
@@ -279,36 +261,15 @@ private final class OverlayView: NSView {
     /// A zoomed view of the pixels around the pointer for precise selection.
     private func drawMagnifier(at point: CGPoint, in context: CGContext) {
         let side: CGFloat = 120
-        let sourceSide: CGFloat = 15  // points around the pointer → 8× zoom
         var origin = CGPoint(x: point.x + 24, y: point.y - 24 - side)
         if origin.x + side > bounds.width { origin.x = point.x - 24 - side }
         if origin.y < 0 { origin.y = point.y + 24 }
         let box = CGRect(origin: origin, size: CGSize(width: side, height: side))
-
-        let source = CGRect(x: point.x - sourceSide / 2, y: point.y - sourceSide / 2, width: sourceSide, height: sourceSide)
+        // 15 points around the pointer → 8× zoom.
+        let source = CGRect(x: point.x - 7.5, y: point.y - 7.5, width: 15, height: 15)
             .offsetBy(dx: snapshot.frame.minX, dy: snapshot.frame.minY)
         guard let crop = snapshot.crop(source) else { return }
-
-        context.saveGState()
-        let clip = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
-        clip.addClip()
-        context.interpolationQuality = .none
-        context.draw(crop, in: box)
-        // Crosshair on the center pixel.
-        NSColor.controlAccentColor.withAlphaComponent(0.8).setStroke()
-        let cross = NSBezierPath()
-        cross.move(to: CGPoint(x: box.midX, y: box.minY))
-        cross.line(to: CGPoint(x: box.midX, y: box.maxY))
-        cross.move(to: CGPoint(x: box.minX, y: box.midY))
-        cross.line(to: CGPoint(x: box.maxX, y: box.midY))
-        cross.lineWidth = 1
-        cross.stroke()
-        context.restoreGState()
-
-        NSColor.white.withAlphaComponent(0.9).setStroke()
-        let border = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
-        border.lineWidth = 2
-        border.stroke()
+        Magnifier.draw(crop, in: box, style: .selection, context: context)
     }
 
     private func drawSizeLabel(for selection: CGRect) {

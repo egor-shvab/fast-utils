@@ -312,3 +312,13 @@
 "text.hud.noPermission" = "Accessibility access is needed to replace text";
 "text.settings.switchLayout" = "Switch keyboard layout after fixing";
 "text.settings.footer" = "With nothing selected, the word before the cursor is used. Terminals and some editors do not allow that — select the word instead.";
+
+/* Color picker */
+"feature.color.title" = "Color Picker";
+"feature.color.summary" = "Picks the color of any pixel on screen and copies its code";
+"color.action.pick" = "Pick Color from Screen";
+"color.hud.copied" = "Color copied";
+"color.hud.noPermission" = "Screen Recording permission is needed — open System Settings";
+"color.hud.captureFailed" = "Could not take a screenshot — try again";
+"color.settings.format" = "Format";
+"color.settings.footer" = "Click, Return or Space picks, Esc cancels. Arrows move the loupe by one pixel, with ⇧ by ten. The color is converted to sRGB, so it matches the color code on a web page.";

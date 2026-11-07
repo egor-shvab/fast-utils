@@ -19,6 +19,7 @@ public final class AppContext {
     public let pasteboard: PasteboardService
     public let paste: PasteService
     public let areaSelection: AreaSelectionService
+    public let colorPicker: ColorPickerService
     public let statusIndicator = StatusIndicator()
     public let preferences: AppPreferences
 
@@ -51,7 +52,9 @@ public final class AppContext {
         self.launchAtLogin = LaunchAtLogin()
         self.pasteboard = PasteboardService(pasteboard: pasteboard, events: events)
         self.paste = PasteService(pasteboard: self.pasteboard, keystrokes: keystrokes)
-        self.areaSelection = AreaSelectionService()
+        let capture = ScreenCaptureService()
+        self.areaSelection = AreaSelectionService(capture: capture)
+        self.colorPicker = ColorPickerService(capture: capture)
     }
 
     /// Logger for a category, e.g. `context.logger("ocr")`.
