@@ -21,7 +21,7 @@ public final class SettingsStore {
     // MARK: Export / import
 
     /// Namespaces that belong to FastUtils. Secrets are never here (they live in the Keychain).
-    static let exportedPrefixes = ["app.", "features.", "hotkeys.", "ocr.", "translate.", "clipboard.", "text.", "color."]
+    static let exportedPrefixes = ["app.", "features.", "hotkeys.", "ocr.", "translate.", "clipboard.", "text.", "color.", "screenshot."]
 
     /// All FastUtils settings as JSON.
     public func exportJSON() throws -> Data {

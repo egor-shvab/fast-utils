@@ -97,8 +97,8 @@ extension ScreenSnapshot {
 
 /// A full-screen borderless panel over one display, shown over full-screen apps and on
 /// every Space. Used by area selection and the color picker.
-final class OverlayWindow: NSPanel {
-    init(snapshot: ScreenSnapshot) {
+public final class OverlayWindow: NSPanel {
+    public init(snapshot: ScreenSnapshot) {
         super.init(contentRect: snapshot.frame, styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered, defer: false)
         level = .screenSaver
@@ -112,20 +112,20 @@ final class OverlayWindow: NSPanel {
         setFrame(snapshot.frame, display: false)
     }
 
-    override var canBecomeKey: Bool { true }
+    override public var canBecomeKey: Bool { true }
 }
 
 /// Zoomed pixels with crisp edges (no interpolation).
 @MainActor
-enum Magnifier {
-    enum Style {
+public enum Magnifier {
+    public enum Style: Sendable {
         /// Rounded square with a crosshair: area selection.
         case selection
         /// Rounded square with the center pixel framed; `count` pixels across: the color picker.
         case pixelGrid(count: Int)
     }
 
-    static func draw(_ image: CGImage, in box: CGRect, style: Style, context: CGContext) {
+    public static func draw(_ image: CGImage, in box: CGRect, style: Style, context: CGContext) {
         let shape = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
         context.saveGState()
         shape.addClip()

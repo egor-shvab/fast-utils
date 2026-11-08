@@ -41,7 +41,7 @@ public final class AreaSelectionService {
 
 extension AreaSelectionService {
     /// Frames of other apps' normal windows, front to back, in AppKit global coordinates.
-    static func visibleWindowFrames() -> [CGRect] {
+    public static func visibleWindowFrames() -> [CGRect] {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
             as? [[String: Any]],
             let primaryHeight = NSScreen.screens.first?.frame.height

@@ -18,6 +18,8 @@ public final class AppContext {
     public let launchAtLogin: LaunchAtLogin
     public let pasteboard: PasteboardService
     public let paste: PasteService
+    /// Snapshots of every screen (without FastUtils' windows), shared by the screen features.
+    public let screenCapture: ScreenCaptureService
     public let areaSelection: AreaSelectionService
     public let colorPicker: ColorPickerService
     public let statusIndicator = StatusIndicator()
@@ -52,9 +54,9 @@ public final class AppContext {
         self.launchAtLogin = LaunchAtLogin()
         self.pasteboard = PasteboardService(pasteboard: pasteboard, events: events)
         self.paste = PasteService(pasteboard: self.pasteboard, keystrokes: keystrokes)
-        let capture = ScreenCaptureService()
-        self.areaSelection = AreaSelectionService(capture: capture)
-        self.colorPicker = ColorPickerService(capture: capture)
+        self.screenCapture = ScreenCaptureService()
+        self.areaSelection = AreaSelectionService(capture: screenCapture)
+        self.colorPicker = ColorPickerService(capture: screenCapture)
     }
 
     /// Logger for a category, e.g. `context.logger("ocr")`.

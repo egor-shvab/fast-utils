@@ -31,7 +31,7 @@ public final class OCRFeature: Feature {
             FeatureAction(
                 id: "ocr.captureText",
                 title: String(localized: "ocr.action.captureText"),
-                defaultShortcut: Shortcut(kVK_ANSI_2, [.shift, .command])
+                defaultShortcut: Shortcut(kVK_ANSI_1, [.shift, .command])
             ) { [weak self] _ in
                 guard let self else { return .none }
                 return await captureText()

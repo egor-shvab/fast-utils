@@ -8,6 +8,13 @@ public struct ScreenSnapshot: @unchecked Sendable {
     public let scale: CGFloat
     public let image: CGImage
     public let displayID: CGDirectDisplayID
+
+    public init(frame: CGRect, scale: CGFloat, image: CGImage, displayID: CGDirectDisplayID) {
+        self.frame = frame
+        self.scale = scale
+        self.image = image
+        self.displayID = displayID
+    }
 }
 
 public enum ScreenCaptureError: Error, Equatable {

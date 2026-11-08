@@ -21,7 +21,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "FastUtilsApp",
-            dependencies: ["Core", "FeatureOCR", "FeatureTranslate", "FeatureClipboard", "FeatureText", "FeatureColor"]
+            dependencies: ["Core", "FeatureOCR", "FeatureTranslate", "FeatureClipboard", "FeatureText", "FeatureColor", "FeatureScreenshot"]
         ),
         .target(name: "Core"),
         .target(name: "FeatureOCR", dependencies: ["Core"]),
@@ -29,6 +29,7 @@ let package = Package(
         .target(name: "FeatureClipboard", dependencies: ["Core"]),
         .target(name: "FeatureText", dependencies: ["Core"]),
         .target(name: "FeatureColor", dependencies: ["Core"]),
+        .target(name: "FeatureScreenshot", dependencies: ["Core"]),
 
         .testTarget(name: "CoreTests", dependencies: ["Core"], swiftSettings: testSettings),
         .testTarget(name: "FeatureOCRTests", dependencies: ["FeatureOCR"], swiftSettings: testSettings),
@@ -36,6 +37,7 @@ let package = Package(
         .testTarget(name: "FeatureClipboardTests", dependencies: ["FeatureClipboard"], swiftSettings: testSettings),
         .testTarget(name: "FeatureTextTests", dependencies: ["FeatureText"], swiftSettings: testSettings),
         .testTarget(name: "FeatureColorTests", dependencies: ["FeatureColor"], swiftSettings: testSettings),
+        .testTarget(name: "FeatureScreenshotTests", dependencies: ["FeatureScreenshot"], swiftSettings: testSettings),
         // Whole-app checks: links between features, localization of every source file.
         .testTarget(name: "AppTests", dependencies: ["FastUtilsApp"], swiftSettings: testSettings),
     ]
