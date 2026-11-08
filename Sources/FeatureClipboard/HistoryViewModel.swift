@@ -73,7 +73,9 @@ final class HistoryViewModel: ObservableObject {
     @Published private(set) var sidePreview: ClipItem?
     var previewOnSelect = false
     /// The item shown in the preview overlay (fully loaded).
-    @Published private(set) var preview: ClipItem?
+    @Published private(set) var preview: ClipItem? {
+        didSet { if oldValue != nil, preview == nil { onPreviewClosed?() } }
+    }
     @Published private(set) var hasLoaded = false
     /// The store may hold more rows than are loaded: scrolling to the end loads the next page.
     @Published private(set) var canLoadMore = false
@@ -98,6 +100,8 @@ final class HistoryViewModel: ObservableObject {
     var onClose: (() -> Void)?
     /// Pinning or deleting failed; the feature shows an error HUD.
     var onError: (() -> Void)?
+    /// The preview overlay went away: the rows under it need their hover tracking back.
+    var onPreviewClosed: (() -> Void)?
 
     init(store: HistoryStore, pageSize: Int = HistoryViewModel.defaultPageSize) {
         self.store = store

@@ -10,9 +10,9 @@ import FeatureTranslate
 @MainActor
 let featureTypes: [any Feature.Type] = [
     OCRFeature.self,
+    ScreenshotFeature.self,
     TranslateFeature.self,
     ClipboardFeature.self,
     TextFeature.self,
     ColorFeature.self,
-    ScreenshotFeature.self,
 ]

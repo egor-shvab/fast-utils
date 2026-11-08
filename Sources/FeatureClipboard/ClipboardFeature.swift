@@ -271,6 +271,10 @@ public final class ClipboardFeature: Feature {
             HistoryView(model: model)
         }
         installKeyMonitor(for: handle.window, model: model)
+        model.onPreviewClosed = { [weak window = handle.window] in
+            // Next turn: by then SwiftUI has removed the overlay.
+            DispatchQueue.main.async { HoverTracking.refresh(in: window) }
+        }
         log.notice("History window opened in \((ContinuousClock.now - started).formatted(.units(allowed: [.milliseconds])), privacy: .public)")
     }
 
